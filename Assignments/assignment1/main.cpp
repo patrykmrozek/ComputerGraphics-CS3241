@@ -22,7 +22,7 @@ typedef struct {
 std::vector<vec3> createCircle(float radius, int vertex_count) {
     std::vector<vec3> vertices;
     float angle = 360.0f / vertex_count;
-    int triangle_count = vertex_count - 2; //n vertices = n-2 triangles
+    int triangle_count = vertex_count - 2; //n vertices = n-2 triangles - eg pentagon needs only 3 triangles
     std::vector<vec3> temp;
 
     for (int i = 0; i < vertex_count; i++) {
@@ -50,7 +50,18 @@ void drawCircle(float radius, int vertex_count) {
         std::cout << vertex.x << " - " << vertex.y << "\n";
     }
     glEnd();
+}
 
+void drawHead() {
+    glColor3f(0.0, 0.0, 0.0);
+    drawCircle(5, 50);
+    glColor3f(1.0, 1.0, 1.0);
+    drawCircle(4.8, 50);
+}
+
+void drawEyes() {
+    glColor3f(0.0, 0.0, 0.0);
+    drawCircle(1.5, 30);
 }
 
 void display(void)
@@ -64,8 +75,7 @@ void display(void)
     glTranslatef(tx, ty, 0);
     glRotatef(alpha, 0, 0, 1);
 
-    glColor3f(1.0, 0.0, 0.0);
-    drawCircle(0.5, 10);
+    drawHead();
 
     glPopMatrix();
     glFlush ();
@@ -156,7 +166,7 @@ int main(int argc, char **argv)
 
     glutInit(&argc, argv);
     glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize (600, 600);
+    glutInitWindowSize (800, 800);
     glutInitWindowPosition (50, 50);
     glutCreateWindow (argv[0]);
     init ();
