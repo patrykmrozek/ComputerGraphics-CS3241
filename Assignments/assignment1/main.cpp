@@ -2,11 +2,8 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
-#define GL_SILENCE_DEPRECATION
-#ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
-#endif
 
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
 #define RAD_TO_DEG(x) ((x) * (180.0f / PI))
@@ -22,13 +19,13 @@ typedef struct {
 
 
 
-std::vector<vec3> createCircle(float radius, int vector_count) {
+std::vector<vec3> createCircle(float radius, int vertex_count) {
     std::vector<vec3> vertices;
-    float angle = 360.0f / vector_count;
-    int triangle_count = vector_count - 2; //n vertices = n-2 triangles
+    float angle = 360.0f / vertex_count;
+    int triangle_count = vertex_count - 2; //n vertices = n-2 triangles
     std::vector<vec3> temp;
 
-    for (int i = 0; i < vector_count; i++) {
+    for (int i = 0; i < vertex_count; i++) {
         float current_angle = angle * i;
         float x = radius * cos(DEG_TO_RAD(current_angle));
         float y = radius * sin(DEG_TO_RAD(current_angle));
@@ -45,6 +42,17 @@ std::vector<vec3> createCircle(float radius, int vector_count) {
     return vertices;
 }
 
+void drawCircle(float radius, int vertex_count) {
+    std::vector<vec3> circle_vertices = createCircle(radius, vertex_count);
+    glBegin(GL_POLYGON);
+    for (vec3 vertex : circle_vertices) {
+        glVertex2f(vertex.x, vertex.y);
+        std::cout << vertex.x << " - " << vertex.y << "\n";
+    }
+    glEnd();
+
+}
+
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -56,13 +64,8 @@ void display(void)
     glTranslatef(tx, ty, 0);
     glRotatef(alpha, 0, 0, 1);
 
-    //draw your stuff here (Erase the triangle code)
-    glBegin(GL_POLYGON);
-    glColor3f(0.5, 0, 0);
-    glVertex2f(-3,-3);
-    glVertex2f(3,-3);
-    glVertex2f(0,3);
-    glEnd();
+    glColor3f(1.0, 0.0, 0.0);
+    drawCircle(0.5, 10);
 
     glPopMatrix();
     glFlush ();
@@ -144,12 +147,12 @@ void keyboard (unsigned char key, int x, int y)
 
 int main(int argc, char **argv)
 {
-    cout<<"CS3241 Lab 1\n\n";
-    cout<<"+++++CONTROL BUTTONS+++++++\n\n";
-    cout<<"Scale Up/Down: Q/E\n";
-    cout<<"Rotate Clockwise/Counter-clockwise: A/D\n";
-    cout<<"Move Up/Down: W/S\n";
-    cout<<"Move Left/Right: Z/C\n";
+    std::cout<<"CS3241 Lab 1\n\n";
+    std::cout<<"+++++CONTROL BUTTONS+++++++\n\n";
+    std::cout<<"Scale Up/Down: Q/E\n";
+    std::cout<<"Rotate Clockwise/Counter-clockwise: A/D\n";
+    std::cout<<"Move Up/Down: W/S\n";
+    std::cout<<"Move Left/Right: Z/C\n";
 
     glutInit(&argc, argv);
     glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
