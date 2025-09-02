@@ -17,6 +17,11 @@ GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
 float tx = 0.0, ty=1;
 
+
+//display list - a pre compiled list of OpenGL commands stored on the GPU
+GLuint head_list, mouth_list, eye_list, bone_list;
+
+
 typedef struct {
     float x, y, z;
 } vec3;
@@ -123,7 +128,6 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
         glTranslatef(bone_end_dist, 0, 0);
         drawCircle(bone_radius, 50);
         glPopMatrix();
-
         glPopMatrix();
 
         std::cout << "ANGLE: " << angle_current << "\n";
@@ -131,6 +135,51 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
 
     glPopMatrix();
 }
+
+void createDisplayList() {
+    //head
+    head_list = glGenLists(1);
+    glNewList(head_list, GL_COMPILE);
+    drawHead();
+    glEndList();
+
+    //mouth
+    mouth_list = glGenLists(1);
+    glNewList(mouth_list, GL_COMPILE);
+    drawMouth();
+    glEndList();
+
+    //eyes
+    eye_list = glGenLists(1);
+    glNewList(eye_list, GL_COMPILE);
+    drawEyes();
+    glEndList();
+
+    //bones
+    bone_list = glGenLists(1);
+    glNewList(bone_list, GL_COMPILE);
+    drawBones(4, 1.3, 9);
+    glEndList();
+}
+
+void drawHeadFromList() {
+    glCallList(head_list);
+}
+
+void drawMouthFromList() {
+    glCallList(mouth_list);
+}
+
+void drawEyesFromList() {
+    glCallList(eye_list);
+}
+
+void drawBonesFromList() {
+    glCallList(bone_list);
+}
+
+
+
 
 void display(void)
 {
@@ -146,20 +195,21 @@ void display(void)
     //drawing
     //draw outline/border first (black)
     glColor3f(0.0, 0.0, 0.0);
-    drawMouth();
-    drawHead();
-    drawBones(4, 1.5, 9);
-    //draw coloured sections (scaled down/coloured)
+    drawMouthFromList();
+    drawHeadFromList();
+    drawBonesFromList();
 
+
+    //draw coloured sections (scaled down/coloured)
     glPushMatrix();
     glScalef(0.95, 0.95, 0.0);
     glColor3f(1.0, 1.0, 1.0);
-    drawMouth();
-    drawHead();
+    drawMouthFromList();
+    drawHeadFromList();
+    drawBonesFromList();
     glPopMatrix();
-    drawBones(4, 1.3, 9);
 
-    drawEyes();
+    drawEyesFromList();
 
     glPopMatrix();
 
@@ -255,6 +305,7 @@ int main(int argc, char **argv)
     glutInitWindowPosition (50, 50);
     glutCreateWindow (argv[0]);
     init ();
+    createDisplayList();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     //glutMouseFunc(mouse);
