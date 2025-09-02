@@ -52,7 +52,7 @@ void reshape(int w, int h) {
     gluPerspective(45.0, (double)w/h, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, 5.0,  // eye position
+    gluLookAt(tx, ty, 5.0,  // eye position
               0.0, 0.0, 0.0,  // look at center
               0.0, 1.0, 0.0); // up vector
 }
@@ -64,7 +64,7 @@ void display() {
 
     glPushMatrix();
 
-    glTranslatef(tx, ty, 0);
+    //glTranslatef(tx, ty, 0);
     glRotatef(alpha, 0, 0, 1);
     glScalef(k, k, k);
 
@@ -105,12 +105,14 @@ void keyboard (unsigned char key, int x, int y)
         break;
 
     case 'z':
-        tx-=0.1;
+        tx -= 0.1;
+        reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
         glutPostRedisplay();
         break;
 
     case 'c':
-        tx+=0.1;
+        tx += 0.1;
+        reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
         glutPostRedisplay();
         break;
 
