@@ -1,6 +1,6 @@
 ////////////////////////////////////
 /// Name: Patryk Mrozek
-/// Functions:
+/// Functions: glNewList() - glEndList() - glCallList();
 ///////////////////////////////////
 
 // CS3241 Assignment 1: Doodle
@@ -13,13 +13,20 @@
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
 #define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
 
+#define BONE_COUNT 4
+#define BONE_RADIUS_OUTLINE 1.5
+#define BONE_RADIUS_FILL 1.3
+#define BONE_DIST_FROM_CENTER 9
+#define BONE_END_DIST (3*BONE_RADIUS)/4
+
+
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
 float tx = 0.0, ty=1;
 
 
 //display list - a pre compiled list of OpenGL commands stored on the GPU
-GLuint head_list, mouth_list, eye_list, bone_list;
+GLuint head_list, mouth_list, eye_list, bone_list_outline, bone_list_fill;
 
 
 typedef struct {
@@ -99,14 +106,14 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
     glPushMatrix();
     glTranslatef(0, -1.5, 0);//shift all bones down
     glRotatef(45, 0, 0, 1);//rotate all bones by 45 deg so that theyre in the corners
-    float bone_end_dist = (3*bone_radius)/4;
+
     for (int i = 0; i < bone_count; i++) {
         glPushMatrix();
         //angle at current i
         float angle_current = angle_step * i;
 
-        float x = bone_dist_from_center * cos(angle_current);
-        float y = bone_dist_from_center * sin(angle_current);
+        float x = BONE_DIST_FROM_CENTER * cos(angle_current);
+        float y = BONE_DIST_FROM_CENTER * sin(angle_current);
 
         std::cout << "X: " << x << " - Y: " << y << "\n";
 
@@ -119,13 +126,13 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
         //end of the bone
         //first 'bone circle'
         glPushMatrix();
-        glTranslatef(-bone_end_dist, 0, 0);
+        glTranslatef(-bone_radius*0.75, 0, 0);
         drawCircle(bone_radius, 50);
         glPopMatrix();
 
         //second 'bone circle'
         glPushMatrix();
-        glTranslatef(bone_end_dist, 0, 0);
+        glTranslatef(bone_radius*0.75, 0, 0);
         drawCircle(bone_radius, 50);
         glPopMatrix();
         glPopMatrix();
@@ -156,9 +163,14 @@ void createDisplayList() {
     glEndList();
 
     //bones
-    bone_list = glGenLists(1);
-    glNewList(bone_list, GL_COMPILE);
-    drawBones(4, 1.3, 9);
+    bone_list_outline = glGenLists(1);
+    glNewList(bone_list_outline, GL_COMPILE);
+    drawBones(BONE_COUNT, BONE_RADIUS_OUTLINE, BONE_DIST_FROM_CENTER);
+    glEndList();
+
+    bone_list_fill= glGenLists(1);
+    glNewList(bone_list_fill, GL_COMPILE);
+    drawBones(BONE_COUNT, BONE_RADIUS_FILL, BONE_DIST_FROM_CENTER);
     glEndList();
 }
 
@@ -174,8 +186,12 @@ void drawEyesFromList() {
     glCallList(eye_list);
 }
 
-void drawBonesFromList() {
-    glCallList(bone_list);
+void drawBonesOutlineFromList() {
+    glCallList(bone_list_outline);
+}
+
+void drawBonesFillFromList() {
+    glCallList(bone_list_fill);
 }
 
 
@@ -197,18 +213,20 @@ void display(void)
     glColor3f(0.0, 0.0, 0.0);
     drawMouthFromList();
     drawHeadFromList();
-    drawBonesFromList();
+    drawBonesOutlineFromList();
 
 
+    glColor3f(1.0, 1.0, 1.0);
     //draw coloured sections (scaled down/coloured)
     glPushMatrix();
     glScalef(0.95, 0.95, 0.0);
-    glColor3f(1.0, 1.0, 1.0);
     drawMouthFromList();
     drawHeadFromList();
-    drawBonesFromList();
     glPopMatrix();
 
+    drawBonesFillFromList();
+
+    glColor3f(0.0, 0.0, 0.0);
     drawEyesFromList();
 
     glPopMatrix();
