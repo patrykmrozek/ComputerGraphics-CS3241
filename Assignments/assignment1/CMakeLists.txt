@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(tut1 LANGUAGES CXX)
+project(ass1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,7 +9,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
 
-add_executable(tut1 main.cpp)
+add_executable(ass1 main.cpp)
 
 target_link_libraries(${PROJECT_NAME}
     ${OPENGL_LIBRARIES}
@@ -34,7 +34,7 @@ endif()
 
 
 include(GNUInstallDirs)
-install(TARGETS tut1
+install(TARGETS ass1
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

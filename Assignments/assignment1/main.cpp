@@ -110,6 +110,19 @@ void drawEyes() {
     glPopMatrix();
 }
 
+void drawBoneBody(float length, float width) {
+    float half_width = width/2;
+    float half_length = length/2;
+
+    glBegin(GL_POLYGON);
+    glVertex2f(-half_length, -half_width);
+    glVertex2f(half_length, -half_width);
+    glVertex2f(half_length, half_width);
+    glVertex2f(-half_length, half_width);
+    glEnd();
+
+}
+
 void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
     /*
      * drawCricle,
@@ -127,54 +140,30 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
         //angle at current i
         float angle_current = angle_step * i;
 
-        float x = BONE_DIST_FROM_CENTER * cos(angle_current);
-        float y = BONE_DIST_FROM_CENTER * sin(angle_current);
-
-        std::cout << "X: " << x << " - Y: " << y << "\n";
-
-        glTranslatef(x, y, 0.0);
-
         //calculate the angle to face the origin ()
-        float angle_to_center = atan2(-x, -y);
-        glRotatef(RAD_TO_DEG(angle_to_center), 0, 0, 1.0);
-
-        //end of the bone
-        //first 'bone circle'
-        glPushMatrix();
-        glTranslatef(-bone_radius*0.75, 0, 0);
-        drawCircle(bone_radius, 50);
-        glPopMatrix();
-
-        //second 'bone circle'
-        glPushMatrix();
-        glTranslatef(bone_radius*0.75, 0, 0);
-        drawCircle(bone_radius, 50);
-        glPopMatrix();
-        glPopMatrix();
-
-        //actual bone (TOP SIDE)
-        glPushMatrix();
-        glBegin(GL_POLYGON);
-        glVertex2f(x*bone_radius*0.75, y*bone_radius*0.75);
-        glVertex2f(0, 0);
-        glVertex2f(2, 2);
-        glEnd();
-        glPopMatrix();
-
-        //(BOTTOM SIDE)
+        float dangle = RAD_TO_DEG(angle_current); //dangle = degree angle :)
+        glRotatef(dangle, 0, 0, 1.0); //rotate coord system - posx is bone direction
 
         glPushMatrix();
-        glBegin(GL_POLYGON);
-        glVertex2f(x*bone_radius*0.75, y*bone_radius*0.75);
-        glVertex2f(2, 2);
-        glVertex2f(0, 0);
-        glEnd();
+        glTranslatef(bone_dist_from_center/2, 0, 0); //go to between the end of the bone and the center
+        drawBoneBody(bone_dist_from_center, bone_radius*0.8f);//draw a rectangle extending outward both ways
         glPopMatrix();
 
+        glPushMatrix();
+        glTranslatef(0, bone_radius*0.75, 0); //start at center - move up 0.75 radius
+        drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //firsst 'bone-ball'
+        glTranslatef(0, -bone_radius*1.5, 0); //move down 1.5 radius (0.75 each side)
+        drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //second 'bone-ball'
+        glPopMatrix();
 
+        glPushMatrix();
+        glTranslatef(bone_dist_from_center, bone_radius*0.75, 0); //move to where the end of the bone should be
+        drawCircle(bone_radius, 20);
+        glTranslatef(0, -bone_radius * 1.5, 0); // lower ball
+        drawCircle(bone_radius, 20);
+        glPopMatrix();
 
-
-        std::cout << "ANGLE: " << angle_current << "\n";
+        glPopMatrix();
     }
 
     glPopMatrix();
