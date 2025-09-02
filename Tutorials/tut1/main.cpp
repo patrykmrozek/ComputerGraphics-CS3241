@@ -42,9 +42,21 @@ void drawSphere(double r) {
     }
 }
 
+void reshape(int w, int h) {
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0, (double)w/h, 0.1, 100.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0, 0.0, 5.0,  // eye position
+              0.0, 0.0, 0.0,  // look at center
+              0.0, 1.0, 0.0); // up vector
+}
+
 
 void display() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //draw_square();
 
     glColor3f(1.0, 0.0, 0.0);
@@ -59,9 +71,12 @@ int main(int argc, char** argv) {
     glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize (800, 800);
     glutInitWindowPosition (50, 50);
-    glutCreateWindow("My  Window");
+    glutCreateWindow("Sphere Wireframe");
 
     glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
     glutMainLoop();
