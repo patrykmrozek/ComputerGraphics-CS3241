@@ -1,12 +1,15 @@
 #include <math.h>
 #include <GLUT/glut.h>
 
+float alpha = 0.0, k=1;
+float tx = 0.0, ty=0.0f;
+
+
 void drawSphere(double r) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //x = (r*sin(Phi)*cos(Theta))
     //y = (r*sin(Phi)*sin(Theta))
     //z = (r*cos(Phi))
-    glScalef(r, r, r);
     int n = 20;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 2*n; j++) {
@@ -59,22 +62,87 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //draw_square();
 
+    glPushMatrix();
+
+    glTranslatef(tx, ty, 0);
+    glRotatef(alpha, 0, 0, 1);
+    glScalef(k, k, k);
+
     glColor3f(1.0, 0.0, 0.0);
     drawSphere(1.0);
 
+    glPopMatrix();
+
     glutSwapBuffers();
+}
+
+void keyboard (unsigned char key, int x, int y)
+{
+    //keys to control scaling - k
+    //keys to control rotation - alpha
+    //keys to control translation - tx, ty
+    switch (key) {
+
+    case 'a':
+        alpha+=10;
+        glutPostRedisplay();
+        break;
+
+    case 'd':
+        alpha-=10;
+        glutPostRedisplay();
+        break;
+
+    case 'q':
+        k+=0.1;
+        glutPostRedisplay();
+        break;
+
+    case 'e':
+        if(k>0.1)
+            k-=0.1;
+        glutPostRedisplay();
+        break;
+
+    case 'z':
+        tx-=0.1;
+        glutPostRedisplay();
+        break;
+
+    case 'c':
+        tx+=0.1;
+        glutPostRedisplay();
+        break;
+
+    case 's':
+        ty-=0.1;
+        glutPostRedisplay();
+        break;
+
+    case 'w':
+        ty+=0.1;
+        glutPostRedisplay();
+        break;
+
+    case 27:
+        exit(0);
+
+    default:
+        break;
+    }
 }
 
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize (800, 800);
     glutInitWindowPosition (50, 50);
     glutCreateWindow("Sphere Wireframe");
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard);
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0, 0.0, 0.0, 0.0);
