@@ -14,10 +14,25 @@
 #define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
 
 #define BONE_COUNT 4
-#define BONE_RADIUS_OUTLINE 1.5
-#define BONE_RADIUS_FILL 1.3
-#define BONE_DIST_FROM_CENTER 9
-#define BONE_END_DIST (3*BONE_RADIUS)/4
+#define BONE_RADIUS_OUTLINE 1.5f
+#define BONE_RADIUS_FILL 1.3f
+#define BONE_DIST_FROM_CENTER 9.0f
+#define BONE_LENGTH 2.5f
+#define BONE_ROTATION_OFFSET 45.0f
+#define BONE_Y_OFFSET -1.5f
+
+#define HEAD_SCALE_FACTOR 0.95f
+#define HEAD_RADIUS 4.5f
+
+#define MOUTH_RADIUS 4.5f
+#define MOUTH_SCALE_FACTOR 0.7f
+#define MOUTH_Y_OFFSET -5.0f
+
+#define EYE_RADIUS 1.5f
+#define EYE_Y_OFFSET -1.5f
+#define EYE_X_SPACING 4.0f
+
+#define CIRCLE_NUM_VERTICES 50
 
 
 GLfloat GPI = (GLfloat)M_PI;
@@ -69,28 +84,28 @@ void drawCircle(float radius, int vertex_count) {
 }
 
 void drawHead() {
-    drawCircle(4.5, 50);
+    drawCircle(HEAD_RADIUS, CIRCLE_NUM_VERTICES);
 }
 
 void drawMouth() {
     glPushMatrix();
-    glTranslatef(0.0, -5, 0.0);
-    glScalef(0.7, 0.7, 0.0);
-    drawCircle(4.5, 50);
+    glTranslatef(0.0, MOUTH_Y_OFFSET, 0.0);
+    glScalef(MOUTH_SCALE_FACTOR, MOUTH_SCALE_FACTOR, 0.0);
+    drawCircle(MOUTH_RADIUS, CIRCLE_NUM_VERTICES);
     glPopMatrix();
 }
 
 void drawEye() {
     glColor3f(0.0, 0.0, 0.0);
-    drawCircle(1.5, 30);
+    drawCircle(EYE_RADIUS,  CIRCLE_NUM_VERTICES);
 }
 
 void drawEyes() {
     glPushMatrix();
     glScalef(1, 1, 0.0);
-    glTranslatef(-2, -1.5, 0);
+    glTranslatef(-EYE_X_SPACING/2, EYE_Y_OFFSET, 0);
     drawEye();
-    glTranslatef(4, 0, 0);
+    glTranslatef(EYE_X_SPACING, 0, 0);
     drawEye();
     glPopMatrix();
 }
@@ -104,8 +119,8 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
      */
     float angle_step = 2 * M_PI / bone_count;
     glPushMatrix();
-    glTranslatef(0, -1.5, 0);//shift all bones down
-    glRotatef(45, 0, 0, 1);//rotate all bones by 45 deg so that theyre in the corners
+    glTranslatef(0, BONE_Y_OFFSET, 0);//shift all bones down
+    glRotatef(BONE_ROTATION_OFFSET, 0, 0, 1);//rotate all bones by 45 deg so that theyre in the corners
 
     for (int i = 0; i < bone_count; i++) {
         glPushMatrix();
@@ -136,6 +151,28 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
         drawCircle(bone_radius, 50);
         glPopMatrix();
         glPopMatrix();
+
+        //actual bone (TOP SIDE)
+        glPushMatrix();
+        glBegin(GL_POLYGON);
+        glVertex2f(x*bone_radius*0.75, y*bone_radius*0.75);
+        glVertex2f(0, 0);
+        glVertex2f(2, 2);
+        glEnd();
+        glPopMatrix();
+
+        //(BOTTOM SIDE)
+
+        glPushMatrix();
+        glBegin(GL_POLYGON);
+        glVertex2f(x*bone_radius*0.75, y*bone_radius*0.75);
+        glVertex2f(2, 2);
+        glVertex2f(0, 0);
+        glEnd();
+        glPopMatrix();
+
+
+
 
         std::cout << "ANGLE: " << angle_current << "\n";
     }
