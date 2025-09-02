@@ -11,7 +11,7 @@
 #include <GLUT/GLUT.h>
 
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
-#define RAD_TO_DEG(x) ((x) * (180.0f / PI))
+#define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
@@ -83,31 +83,46 @@ void drawEyes() {
     glPopMatrix();
 }
 
-void drawBones() {
+void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
     /*
      * drawCricle,
      * translate it to the edge of the screen,
      * rotate it about the center - ends up in the corner
      *
      */
-    float offset = 12.0;
-    glTranslatef(offset/2, -offset/2, 0);
+    float angle_step = 2 * M_PI / bone_count;
     glPushMatrix();
-    for (int i = 0; i < 4; i++) {
-        float angle = 360/4;
-        glRotatef(angle, 0, 0, 10);
-        glTranslatef(offset, 0.0, 0.0f);
-
+    for (int i = 0; i < bone_count; i++) {
         glPushMatrix();
-        glRotatef(angle/2, 0, 0, 1);
-        glTranslatef(1, 0, 0);
-        drawCircle(1.5, 50);
-        glTranslatef(-3, 0, 0);
-        drawCircle(1.5, 50);
+        //angle at current i
+        float angle_current = angle_step * i;
+
+        float x = bone_dist_from_center * cos(angle_current);
+        float y = bone_dist_from_center * sin(angle_current);
+
+        std::cout << "X: " << x << " - Y: " << y << "\n";
+
+        glTranslatef(x, y, 0.0);
+
+        glRotatef(RAD_TO_DEG(angle_current), 0, 0, 1.0);
+
+        //end of the bone
+        //first 'bone circle'
+        glPushMatrix();
+        glTranslatef(-1.0, 0, 0);
+        drawCircle(bone_radius, 20);
         glPopMatrix();
 
-        std::cout << "ANGLE: " << angle*i << "\n";
+        glPushMatrix();
+        glTranslatef(1.0, 0, 0);
+        drawCircle(bone_radius, 20);
+        glPopMatrix();
+
+        glPopMatrix();
+
+        std::cout << "ANGLE: " << angle_current << "\n";
     }
+
     glPopMatrix();
 }
 
@@ -127,7 +142,7 @@ void display(void)
     glColor3f(0.0, 0.0, 0.0);
     //drawMouth();
     //drawHead();
-    drawBones();
+    drawBones(4, 2, 5);
     //draw coloured sections (scaled down/coloured)
     /*
     glPushMatrix();
