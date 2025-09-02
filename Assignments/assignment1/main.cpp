@@ -57,14 +57,14 @@ void drawCircle(float radius, int vertex_count) {
 }
 
 void drawHead() {
-    drawCircle(5, 50);
+    drawCircle(4.5, 50);
 }
 
 void drawMouth() {
     glPushMatrix();
     glTranslatef(0.0, -5, 0.0);
     glScalef(0.7, 0.7, 0.0);
-    drawCircle(5, 50);
+    drawCircle(4.5, 50);
     glPopMatrix();
 }
 
@@ -92,7 +92,9 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
      */
     float angle_step = 2 * M_PI / bone_count;
     glPushMatrix();
-    glRotatef(45, 0, 0, 1);
+    glTranslatef(0, -1.5, 0);//shift all bones down
+    glRotatef(45, 0, 0, 1);//rotate all bones by 45 deg so that theyre in the corners
+    float bone_end_dist = (3*bone_radius)/4;
     for (int i = 0; i < bone_count; i++) {
         glPushMatrix();
         //angle at current i
@@ -112,14 +114,14 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
         //end of the bone
         //first 'bone circle'
         glPushMatrix();
-        glTranslatef(-1.0, 0, 0);
-        drawCircle(bone_radius, 20);
+        glTranslatef(-bone_end_dist, 0, 0);
+        drawCircle(bone_radius, 50);
         glPopMatrix();
 
         //second 'bone circle'
         glPushMatrix();
-        glTranslatef(1.0, 0, 0);
-        drawCircle(bone_radius, 20);
+        glTranslatef(bone_end_dist, 0, 0);
+        drawCircle(bone_radius, 50);
         glPopMatrix();
 
         glPopMatrix();
@@ -144,22 +146,23 @@ void display(void)
     //drawing
     //draw outline/border first (black)
     glColor3f(0.0, 0.0, 0.0);
-    //drawMouth();
-    //drawHead();
-    drawBones(4, 1, 7);
+    drawMouth();
+    drawHead();
+    drawBones(4, 1.5, 9);
     //draw coloured sections (scaled down/coloured)
-    /*
+
     glPushMatrix();
     glScalef(0.95, 0.95, 0.0);
     glColor3f(1.0, 1.0, 1.0);
     drawMouth();
     drawHead();
     glPopMatrix();
+    drawBones(4, 1.3, 9);
 
     drawEyes();
 
     glPopMatrix();
-    */
+
     glFlush ();
 }
 
