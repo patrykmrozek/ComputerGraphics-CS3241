@@ -13,7 +13,6 @@
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
 #define RAD_TO_DEG(x) ((x) * (180.0f / PI))
 
-
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
 float tx = 0.0, ty=1;
@@ -52,16 +51,21 @@ void drawCircle(float radius, int vertex_count) {
     glBegin(GL_POLYGON);
     for (vec3 vertex : circle_vertices) {
         glVertex2f(vertex.x, vertex.y);
-        std::cout << vertex.x << " - " << vertex.y << "\n";
+        //std::cout << vertex.x << " - " << vertex.y << "\n";
     }
     glEnd();
 }
 
 void drawHead() {
-    glColor3f(0.0, 0.0, 0.0);
     drawCircle(5, 50);
-    glColor3f(1.0, 1.0, 1.0);
-    drawCircle(4.8, 50);
+}
+
+void drawMouth() {
+    glPushMatrix();
+    glTranslatef(0.0, -5, 0.0);
+    glScalef(0.7, 0.7, 0.0);
+    drawCircle(5, 50);
+    glPopMatrix();
 }
 
 void drawEye() {
@@ -71,11 +75,39 @@ void drawEye() {
 
 void drawEyes() {
     glPushMatrix();
-    glScalef(1, 1, 0.f);
+    glScalef(1, 1, 0.0);
     glTranslatef(-2, -1.5, 0);
     drawEye();
     glTranslatef(4, 0, 0);
     drawEye();
+    glPopMatrix();
+}
+
+void drawBones() {
+    /*
+     * drawCricle,
+     * translate it to the edge of the screen,
+     * rotate it about the center - ends up in the corner
+     *
+     */
+    float offset = 12.0;
+    glTranslatef(offset/2, -offset/2, 0);
+    glPushMatrix();
+    for (int i = 0; i < 4; i++) {
+        float angle = 360/4;
+        glRotatef(angle, 0, 0, 10);
+        glTranslatef(offset, 0.0, 0.0f);
+
+        glPushMatrix();
+        glRotatef(angle/2, 0, 0, 1);
+        glTranslatef(1, 0, 0);
+        drawCircle(1.5, 50);
+        glTranslatef(-3, 0, 0);
+        drawCircle(1.5, 50);
+        glPopMatrix();
+
+        std::cout << "ANGLE: " << angle*i << "\n";
+    }
     glPopMatrix();
 }
 
@@ -90,11 +122,25 @@ void display(void)
     glTranslatef(tx, ty, 0);
     glRotatef(alpha, 0, 0, 1);
 
+    //drawing
+    //draw outline/border first (black)
+    glColor3f(0.0, 0.0, 0.0);
+    //drawMouth();
+    //drawHead();
+    drawBones();
+    //draw coloured sections (scaled down/coloured)
+    /*
+    glPushMatrix();
+    glScalef(0.95, 0.95, 0.0);
+    glColor3f(1.0, 1.0, 1.0);
+    drawMouth();
     drawHead();
+    glPopMatrix();
+
     drawEyes();
 
-
     glPopMatrix();
+    */
     glFlush ();
 }
 
