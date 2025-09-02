@@ -92,6 +92,7 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
      */
     float angle_step = 2 * M_PI / bone_count;
     glPushMatrix();
+    glRotatef(45, 0, 0, 1);
     for (int i = 0; i < bone_count; i++) {
         glPushMatrix();
         //angle at current i
@@ -104,7 +105,9 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
 
         glTranslatef(x, y, 0.0);
 
-        glRotatef(RAD_TO_DEG(angle_current), 0, 0, 1.0);
+        //calculate the angle to face the origin ()
+        float angle_to_center = atan2(-x, -y);
+        glRotatef(RAD_TO_DEG(angle_to_center), 0, 0, 1.0);
 
         //end of the bone
         //first 'bone circle'
@@ -113,6 +116,7 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
         drawCircle(bone_radius, 20);
         glPopMatrix();
 
+        //second 'bone circle'
         glPushMatrix();
         glTranslatef(1.0, 0, 0);
         drawCircle(bone_radius, 20);
@@ -142,7 +146,7 @@ void display(void)
     glColor3f(0.0, 0.0, 0.0);
     //drawMouth();
     //drawHead();
-    drawBones(4, 2, 5);
+    drawBones(4, 1, 7);
     //draw coloured sections (scaled down/coloured)
     /*
     glPushMatrix();
