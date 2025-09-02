@@ -6,7 +6,10 @@ A collection of OpenGL projects and exercises for Computer Graphics class.
 
 A wireframe sphere renderer with interactive camera controls built using OpenGL and GLUT.
 
-[Demo Video](media/sphereWireframe.mov)
+<video width="600" controls>
+  <source src="media/sphereWireframe.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ### Controls
 
