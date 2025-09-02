@@ -1,3 +1,8 @@
+////////////////////////////////////
+/// Name: Patryk Mrozek
+/// Functions:
+///////////////////////////////////
+
 // CS3241 Assignment 1: Doodle
 #include <cmath>
 #include <vector>
@@ -11,7 +16,7 @@
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
-float tx = 0.0, ty=0.0;
+float tx = 0.0, ty=1;
 
 typedef struct {
     float x, y, z;
@@ -59,9 +64,19 @@ void drawHead() {
     drawCircle(4.8, 50);
 }
 
-void drawEyes() {
+void drawEye() {
     glColor3f(0.0, 0.0, 0.0);
     drawCircle(1.5, 30);
+}
+
+void drawEyes() {
+    glPushMatrix();
+    glScalef(1, 1, 0.f);
+    glTranslatef(-2, -1.5, 0);
+    drawEye();
+    glTranslatef(4, 0, 0);
+    drawEye();
+    glPopMatrix();
 }
 
 void display(void)
@@ -76,6 +91,8 @@ void display(void)
     glRotatef(alpha, 0, 0, 1);
 
     drawHead();
+    drawEyes();
+
 
     glPopMatrix();
     glFlush ();
