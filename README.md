@@ -6,7 +6,7 @@ A collection of OpenGL projects and exercises for Computer Graphics class.
 
 A wireframe sphere renderer with interactive camera controls built using OpenGL and GLUT.
 
-![Demo](https://raw.githubusercontent.com/patrykmrozek/ComputerGraphics-CS3241/main/media/sphereWireframe.gif)
+![Demo](https://raw.githubusercontent.com/patrykmrozek/ComputerGraphics-CS3241/main/media/sphereWireframe.mp4)
 
 ### Controls
 
@@ -19,7 +19,7 @@ A wireframe sphere renderer with interactive camera controls built using OpenGL 
 ### Building and Running
 
 ```bash
-gcc -o sphere sphere.c -lGL -lGLU -lglut -lm
+g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
 ./sphere
 ```
 
