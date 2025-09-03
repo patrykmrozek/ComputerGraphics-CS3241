@@ -78,7 +78,8 @@ float tx = 0.0, ty=1;
 //display list - a pre compiled list of OpenGL commands stored on the GPU
 GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list,
     bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill,hat_list_outline, hat_list_fill,
-    teeth_bottom_list_outline, teeth_bottom_list_fill, teeth_middle_list_outline, teeth_middle_list_fill;
+    teeth_bottom_list_outline, teeth_bottom_list_fill, teeth_middle_list_outline, teeth_middle_list_fill,
+    nose_list;
 
   /////////////////////////////////////
  /*			DRAW FUNCTIONS			*/
@@ -287,6 +288,12 @@ void createDisplayList() {
     drawHead(HEAD_RADIUS_FILL);
     glEndList();
 
+    //nose
+    nose_list = glGenLists(1);
+    glNewList(nose_list, GL_COMPILE);
+    drawNose(NOSE_RADIUS);
+    glEndList();
+
     //mouth
     mouth_list_outline = glGenLists(1);
     glNewList(mouth_list_outline, GL_COMPILE);
@@ -372,6 +379,11 @@ void drawHeadOutlineFromList() {
 void drawHeadFillFromList() {
     glColor3f(1.0, 1.0, 1.0);
     glCallList(head_list_fill);
+}
+
+void drawNoseFromList() {
+    glColor3f(0.0, 0.0, 0.0);
+    glCallList(nose_list);
 }
 
 void drawMouthOutlineFromList() {
@@ -483,8 +495,7 @@ void display(void)
     drawBrimFillFromList();
 
     drawEyesFromList();
-
-    drawNose(0.55);
+    drawNoseFromList();
 
     glPopMatrix();
 
