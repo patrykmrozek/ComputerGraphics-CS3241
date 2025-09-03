@@ -24,7 +24,6 @@
 #define BONE_BALL_DIST_FILL 0.9f
 #define BONE_BODY_SCALE_FACTOR 1.6f
 
-
 #define HEAD_SCALE_FACTOR 0.95f
 #define HEAD_RADIUS_OUTLINE 5.0f
 #define HEAD_RADIUS_FILL 4.8f
@@ -52,6 +51,12 @@
 #define CIRCLE_ANGLE_FULL 360.0f
 #define CIRCLE_ANGLE_HALF 180.0f
 
+typedef struct {
+    float x, y, z;
+} vec3;
+
+#define HAT_COLOR (vec3){1.0, 1.0, 0.0}
+
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
 float tx = 0.0, ty=1;
@@ -62,9 +67,7 @@ GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, e
     bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill, hat_list_outline, hat_list_fill;
 
 
-typedef struct {
-    float x, y, z;
-} vec3;
+
 
 
 
@@ -219,8 +222,6 @@ void drawHat(float hat_radius, float start_angle, float end_angle) {
         vertices.push_back({x, y, 0.0f});
     }
 
-    vertices.insert(vertices.begin(), {0, 0, 0}); //make it start at 0,0
-
     glPushMatrix();
     glTranslatef(0, BRIM_Y_OFFSET, 0);
     glBegin(GL_POLYGON);
@@ -336,7 +337,7 @@ void drawBrimOutlineFromList() {
 }
 
 void drawBrimFillFromList() {
-    glColor3f(1.0, 1.0, 0.0);
+    glColor3f(HAT_COLOR.x, HAT_COLOR.y, 0.0);
     glCallList(brim_list_fill);
 }
 
@@ -346,7 +347,7 @@ void drawHatOutlineFromList() {
 }
 
 void drawHatFillFromList() {
-    glColor3f(1.0, 1.0, 0.0);
+    glColor3f(HAT_COLOR.x, HAT_COLOR.y, 0.0);
     glCallList(hat_list_fill);
 }
 
