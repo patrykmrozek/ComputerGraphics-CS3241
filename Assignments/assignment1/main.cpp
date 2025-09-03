@@ -37,10 +37,10 @@
 #define TEETH_MOUTH_RATIO 0.8
 #define TEETH_RADIUS_OUTLINE (MOUTH_RADIUS_OUTLINE*TEETH_MOUTH_RATIO)
 #define TEETH_RADIUS_FILL (MOUTH_RADIUS_FILL*TEETH_MOUTH_RATIO)
-#define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.3165)
+#define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.318)
 #define TEETH_SCALE_Y_FACTOR (MOUTH_SCALE_Y_FACTOR/1.5)
-#define TEETH_Y_OFFSET_MIDDLE MOUTH_Y_OFFSET*0.85
-#define TEETH_Y_OFFSET_BOTTOM MOUTH_Y_OFFSET*0.85
+#define TEETH_Y_OFFSET_MIDDLE (MOUTH_Y_OFFSET*0.75)
+#define TEETH_Y_OFFSET_BOTTOM (MOUTH_Y_OFFSET*0.95)
 
 #define EYE_RADIUS 1.5f
 #define EYE_Y_OFFSET -1.5f
@@ -63,7 +63,7 @@ typedef struct {
     float x, y, z;
 } vec3;
 
-#define HAT_COLOR (vec3){1.0, 1.0, 0.0}
+#define HAT_COLOR (vec3){1.0, 0.8, 0.0}
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
@@ -72,8 +72,8 @@ float tx = 0.0, ty=1;
 
 //display list - a pre compiled list of OpenGL commands stored on the GPU
 GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list,
-    bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill,
-    hat_list_outline, hat_list_fill, teeth_list_outline, teeth_list_fill;
+    bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill,hat_list_outline, hat_list_fill,
+    teeth_bottom_list_outline, teeth_bottom_list_fill, teeth_middle_list_outline, teeth_middle_list_fill;
 
   /////////////////////////////////////
  /*			DRAW FUNCTIONS			*/
@@ -146,17 +146,21 @@ void drawMouth(float mouth_radius) {
    glPopMatrix();
 }
 
-void drawTeeth(float teeth_radius) {
+void drawTeeth(float teeth_radius, float teeth_y_offset) {
+    //bottom
+    glPushMatrix();
+    glTranslatef(0.0, teeth_y_offset, 0.0);
+    glScalef(TEETH_SCALE_X_FACTOR, TEETH_SCALE_Y_FACTOR, 0.0);
+    drawCircleSlice(teeth_radius, 200.0, 340.0);
+    glPopMatrix();
+/*
     //middle
     glPushMatrix();
     glTranslatef(0.0, TEETH_Y_OFFSET_MIDDLE, 0.0);
     glScalef(TEETH_SCALE_X_FACTOR, TEETH_SCALE_Y_FACTOR, 0.0);
-    drawCircleSlice(teeth_radius, 200, 340);
-
-    //bottom
-    glTranslatef(0.0, TEETH_Y_OFFSET_BOTTOM, 0.0);
-    drawCircleSlice(teeth_radius, 200, 340);
+    drawCircleSlice(teeth_radius, 200.0, 340.0);
     glPopMatrix();
+*/
 }
 
 void drawEye() {
@@ -282,14 +286,24 @@ void createDisplayList() {
     glEndList();
 
     //teeth
-    teeth_list_outline = glGenLists(1);
-    glNewList(teeth_list_outline, GL_COMPILE);
-    drawTeeth(TEETH_RADIUS_OUTLINE);
+    teeth_bottom_list_outline = glGenLists(1);
+    glNewList(teeth_bottom_list_outline, GL_COMPILE);
+    drawTeeth(TEETH_RADIUS_OUTLINE, TEETH_Y_OFFSET_BOTTOM);
     glEndList();
 
-    teeth_list_fill = glGenLists(1);
-    glNewList(teeth_list_fill, GL_COMPILE);
-    drawTeeth(TEETH_RADIUS_FILL);
+    teeth_bottom_list_fill = glGenLists(1);
+    glNewList(teeth_bottom_list_fill, GL_COMPILE);
+    drawTeeth(TEETH_RADIUS_FILL, TEETH_Y_OFFSET_BOTTOM);
+    glEndList();
+
+    teeth_middle_list_outline = glGenLists(1);
+    glNewList(teeth_middle_list_outline, GL_COMPILE);
+    drawTeeth(TEETH_RADIUS_OUTLINE, TEETH_Y_OFFSET_MIDDLE);
+    glEndList();
+
+    teeth_middle_list_fill = glGenLists(1);
+    glNewList(teeth_middle_list_fill, GL_COMPILE);
+    drawTeeth(TEETH_RADIUS_FILL, TEETH_Y_OFFSET_MIDDLE);
     glEndList();
 
     //eyes
@@ -358,14 +372,24 @@ void drawMouthFillFromList() {
 }
 
 
-void drawTeethOutlineFromList() {
+void drawTeethBottomOutlineFromList() {
     glColor3f(0.0, 0.0, 0.0);
-    glCallList(teeth_list_outline);
+    glCallList(teeth_bottom_list_outline);
 }
 
-void drawTeethFillFromList() {
+void drawTeethBottomFillFromList() {
     glColor3f(1.0, 1.0, 1.0);
-    glCallList(teeth_list_fill);
+    glCallList(teeth_bottom_list_fill);
+}
+
+void drawTeethMiddleOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
+    glCallList(teeth_middle_list_outline);
+}
+
+void drawTeethMiddleFillFromList() {
+    glColor3f(1.0, 1.0, 1.0);
+    glCallList(teeth_middle_list_fill);
 }
 
 void drawEyesFromList() {
@@ -428,8 +452,10 @@ void display(void)
     drawMouthFillFromList();
 
     //teeth
-    drawTeethOutlineFromList();
-    drawTeethFillFromList();
+    drawTeethBottomOutlineFromList();
+    drawTeethBottomFillFromList();
+    drawTeethMiddleOutlineFromList();
+    drawTeethMiddleFillFromList();
 
     //head
     drawHeadOutlineFromList();
