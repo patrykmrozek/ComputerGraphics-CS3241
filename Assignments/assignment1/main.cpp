@@ -13,6 +13,12 @@
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
 #define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
 #define WRAP(x, max) ((x) >= (max) ? (x) - (max) : (x))
+//triangle wave macro - pretty much 'smooth' wrapping
+//doubles the max - first half increments - second half decrements
+#define TRIANGLE_WAVE(x, max) \
+        (((x) % (2 * (max)))) < (max) ? \
+        ((x) % (2 * (max))) : \
+        (2 * (max) - ((x) % (2 * (max))))
 
 #define BONE_COUNT 4
 #define BONE_RADIUS_OUTLINE 1.3f
@@ -97,6 +103,24 @@ GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, e
   /////////////////////////////////////
  /*			DRAW FUNCTIONS			*/
 /////////////////////////////////////
+
+void drawBackground() {
+    //have the background change colors overtime
+    static int counter = 0;
+    counter++;
+
+    int red = TRIANGLE_WAVE(counter, 255);
+    int green = TRIANGLE_WAVE(counter + 100, 255);
+    int blue = TRIANGLE_WAVE(counter + 200, 255);
+
+    glClearColor(red/255.0, green/255.0, blue/255.0, 1.0f);
+}
+
+void timer(int value) {
+    //initialize a timer to refresh the screen without having to press keys
+    glutPostRedisplay();
+    glutTimerFunc(100, timer, 0);
+}
 
 std::vector<vec3> createCircle(float radius, int vertex_count, float circle_angle) {
     std::vector<vec3> vertices;
@@ -563,8 +587,9 @@ void drawRibbonFillFromList() {
  /*			DISPLAY			*/
 /////////////////////////////
 
-void display(void)
-{
+void display(void) {
+
+    drawBackground();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
@@ -705,6 +730,7 @@ int main(int argc, char **argv)
     glutCreateWindow (argv[0]);
     init ();
     createDisplayList();
+    glutTimerFunc(100, timer, 0);
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     //glutMouseFunc(mouse);
