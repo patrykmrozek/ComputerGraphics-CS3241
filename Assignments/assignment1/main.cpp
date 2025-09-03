@@ -2,6 +2,10 @@
 /// Name: Patryk Mrozek					   				  ///
 /// Functions: glNewList() - glEndList() - glCallList(); ///
 ///////////////////////////////////////////////////////////
+///
+/// COMPILE ON MAC:
+/// g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
+///
 
 // CS3241 Assignment 1: Doodle
 #include <cmath>
@@ -632,11 +636,13 @@ void display(void) {
     drawBrimOutlineFromList();
     drawBrimFillFromList();
 
+    //eyes
     drawEyesFromList();
+
+    //nose
     drawNoseFromList();
 
     glPopMatrix();
-
     glFlush ();
 }
 
