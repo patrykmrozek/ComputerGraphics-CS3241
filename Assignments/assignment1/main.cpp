@@ -12,7 +12,7 @@
 
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
 #define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
-#define CLAMP(x, y) (if (x >= y) x -= x))
+#define WRAP(x, max) ((x) >= (max) ? (x) - (max) : (x))
 
 #define BONE_COUNT 4
 #define BONE_RADIUS_OUTLINE 1.3f
@@ -40,7 +40,7 @@
 #define MOUTH_SCALE_Y_FACTOR 0.9f
 #define MOUTH_Y_OFFSET -5.0f
 
-#define TEETH_MOUTH_RATIO 0.8
+#define TEETH_MOUTH_RATIO 0.8f
 #define TEETH_RADIUS_OUTLINE (MOUTH_RADIUS_OUTLINE*TEETH_MOUTH_RATIO)
 #define TEETH_RADIUS_FILL (MOUTH_RADIUS_FILL*TEETH_MOUTH_RATIO)
 #define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.3165f)
@@ -49,6 +49,10 @@
 #define TEETH_Y_OFFSET_BOTTOM (MOUTH_Y_OFFSET*0.975f)
 #define TEETH_START_ANGLE 200.0f
 #define TEETH_END_ANGLE 340.0f
+
+#define TOOTH_ANGLE 13.5f
+#define TOOTH_WIDTH 0.1f
+#define TOOTH_LENGTH 2.0f
 
 #define EYE_RADIUS 1.4f
 #define EYE_Y_OFFSET -1.5f
@@ -87,7 +91,7 @@ float tx = 0.0, ty=1;
 GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list,
     bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill,hat_list_outline, hat_list_fill,
     teeth_bottom_list_outline, teeth_bottom_list_fill, teeth_middle_list_outline, teeth_middle_list_fill,
-    nose_list, ribbon_list_outline, ribbon_list_fill;
+    nose_list, ribbon_list_outline, ribbon_list_fill, tooth_list;
 
 
   /////////////////////////////////////
@@ -397,6 +401,12 @@ void createDisplayList() {
     drawTeeth(TEETH_RADIUS_FILL, TEETH_Y_OFFSET_MIDDLE);
     glEndList();
 
+    //tooth
+    tooth_list = glGenLists(1);
+    glNewList(tooth_list, GL_COMPILE);
+    drawTooth(TOOTH_WIDTH, TOOTH_LENGTH, MOUTH_Y_OFFSET, TOOTH_ANGLE);
+    glEndList();
+
     //eyes
     eye_list = glGenLists(1);
     glNewList(eye_list, GL_COMPILE);
@@ -478,7 +488,6 @@ void drawMouthFillFromList() {
     glCallList(mouth_list_fill);
 }
 
-
 void drawTeethBottomOutlineFromList() {
     glColor3f(0.0, 0.0, 0.0);
     glCallList(teeth_bottom_list_outline);
@@ -497,6 +506,11 @@ void drawTeethMiddleOutlineFromList() {
 void drawTeethMiddleFillFromList() {
     glColor3f(1.0, 1.0, 1.0);
     glCallList(teeth_middle_list_fill);
+}
+
+void drawToothFromList() {
+    glColor3f(0.0, 0.0, 0.0);
+    glCallList(tooth_list);
 }
 
 void drawEyesFromList() {
@@ -574,7 +588,8 @@ void display(void)
     drawTeethMiddleOutlineFromList();
     drawTeethMiddleFillFromList();
 
-
+    //tooth
+    drawToothFromList();
 
     //head
     drawHeadOutlineFromList();
@@ -594,9 +609,6 @@ void display(void)
 
     drawEyesFromList();
     drawNoseFromList();
-
-    glColor3f(0.0, 0.0, 0.0);
-    drawTooth(0.1, 2, MOUTH_Y_OFFSET, 13.5);
 
     glPopMatrix();
 
