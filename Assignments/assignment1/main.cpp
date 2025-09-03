@@ -64,11 +64,16 @@
 #define CIRCLE_ANGLE_FULL 360.0f
 #define CIRCLE_ANGLE_HALF 180.0f
 
+#define RIBBON_NUM_VECTORS 100
+#define RIBBON_OUTLINE_RADIUS 1.35
+#define RIBBON_FILL_RADIUS 1.2
+
 typedef struct {
     float x, y, z;
 } vec3;
 
 #define HAT_COLOR (vec3){1.0, 0.8, 0.0}
+#define RIBBON_COLOR (vec3){0.9, 0.0, 0.2}
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
@@ -79,7 +84,8 @@ float tx = 0.0, ty=1;
 GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list,
     bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill,hat_list_outline, hat_list_fill,
     teeth_bottom_list_outline, teeth_bottom_list_fill, teeth_middle_list_outline, teeth_middle_list_fill,
-    nose_list;
+    nose_list, ribbon_list_outline, ribbon_list_fill;
+
 
   /////////////////////////////////////
  /*			DRAW FUNCTIONS			*/
@@ -275,9 +281,14 @@ void drawHat(float hat_radius, float start_angle, float end_angle) {
 //then use these vertices to create the 'ribbon' by joining the first batch with the second
 void drawRibbon(float hat_radius, float ribbon_height, float vertex_count) {
     std::vector<vec3> vertices;
-
+/*
+    float start_angle_front = 0.0f;
+    float end_angle_front = 20.0f;
+    float start_angle_back = 160.0f;
+    float end_angle_back = 180.0f;
+*/
     for (int i = 0; i < vertex_count; i++) {
-        float current_angle = 20 * i / vertex_count; //first 20 deg (0 - 20)
+        float current_angle = 10.0f + (10.0f * i / vertex_count); //first 10 deg (0 - 10)
         float x = hat_radius * cos(DEG_TO_RAD(current_angle));
         float y = hat_radius * sin(DEG_TO_RAD(current_angle));
         vertices.push_back({x, y, 0.0f});
@@ -285,24 +296,26 @@ void drawRibbon(float hat_radius, float ribbon_height, float vertex_count) {
 
     //reversed the loop so that when drawing, they connect at the same height
     for (int i = vertex_count-1; i >= 0; i--) {
-        float current_angle = 160 + (20 * i / vertex_count); //last 20 deg (160 - 180)
+        float current_angle = 160.0f + (10.0f * i / vertex_count); //last 10 deg (170 - 180)
         float x = hat_radius * cos(DEG_TO_RAD(current_angle));
         float y = hat_radius * sin(DEG_TO_RAD(current_angle));
         vertices.push_back({x, y, 0.0f});
     }
 
     glPushMatrix();
-    glTranslatef(0, BRIM_Y_OFFSET, 0);
+    glTranslatef(0, BRIM_Y_OFFSET*1.2f, 0);
+    glScalef(1.01, 1.0, 1.0);
 
     glBegin(GL_QUAD_STRIP);
     for (int i = 0; i < vertices.size(); i++) {
-        glVertex2f(vertices[i].x, vertices[i].y);
-        glVertex2f(vertices[i].x, vertices[i].y + ribbon_height);
+        glVertex2f(vertices[i].x, vertices[i].y - 1.4f);
+        glVertex2f(vertices[i].x, vertices[i].y - 1.4f + ribbon_height);
     }
 
     //connect back to start
-    glVertex2f(vertices[0].x, vertices[0].y);
-    glVertex2f(vertices[0].x, vertices[0].y + ribbon_height);
+   glVertex2f(vertices[0].x, vertices[0].y - 1.4f);
+
+   glVertex2f(vertices[0].x, vertices[0].y - 1.4f + ribbon_height);
 
     glEnd();
     glPopMatrix();
@@ -312,6 +325,7 @@ void drawRibbon(float hat_radius, float ribbon_height, float vertex_count) {
   /////////////////////////////////////
  /*			DISPLAY LIST			*/
 /////////////////////////////////////
+
 
 void createDisplayList() {
     //head
@@ -402,6 +416,17 @@ void createDisplayList() {
     drawHat(HEAD_RADIUS_FILL, 0, 180);
     glEndList();
 
+    //ribbon
+    ribbon_list_outline = glGenLists(1);
+    glNewList(ribbon_list_outline, GL_COMPILE);
+    drawRibbon(HEAD_RADIUS_FILL, RIBBON_OUTLINE_RADIUS, RIBBON_NUM_VECTORS);
+    glEndList();
+
+    ribbon_list_fill = glGenLists(1);
+    glNewList(ribbon_list_fill, GL_COMPILE);
+    drawRibbon(HEAD_RADIUS_FILL, RIBBON_FILL_RADIUS, RIBBON_NUM_VECTORS);
+    glEndList();
+
 }
 
   /////////////////////////////////////////
@@ -489,6 +514,16 @@ void drawHatFillFromList() {
     glCallList(hat_list_fill);
 }
 
+void drawRibbonOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
+    glCallList(ribbon_list_outline);
+}
+
+void drawRibbonFillFromList() {
+    glColor3f(RIBBON_COLOR.x, RIBBON_COLOR.y, RIBBON_COLOR.z);
+    glCallList(ribbon_list_fill);
+}
+
 
   /////////////////////////////
  /*			DISPLAY			*/
@@ -527,8 +562,9 @@ void display(void)
     drawHatOutlineFromList();
     drawHatFillFromList();
 
-    glColor3f(1.0, 0.0, 0.0);
-    drawRibbon(HAT_RADIUS_FILL, 1.5, 20);
+    //ribbon
+    drawRibbonOutlineFromList();
+    drawRibbonFillFromList();
 
     //brim
     drawBrimOutlineFromList();
