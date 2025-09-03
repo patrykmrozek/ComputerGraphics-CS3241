@@ -1,7 +1,7 @@
-////////////////////////////////////
-/// Name: Patryk Mrozek
-/// Functions: glNewList() - glEndList() - glCallList();
-///////////////////////////////////
+//////////////////////////////////////////////////////////////
+/// Name: Patryk Mrozek					   				  ///
+/// Functions: glNewList() - glEndList() - glCallList(); ///
+///////////////////////////////////////////////////////////
 
 // CS3241 Assignment 1: Doodle
 #include <cmath>
@@ -34,6 +34,14 @@
 #define MOUTH_SCALE_Y_FACTOR 0.9f
 #define MOUTH_Y_OFFSET -5.0f
 
+#define TEETH_MOUTH_RATIO 0.8
+#define TEETH_RADIUS_OUTLINE (MOUTH_RADIUS_OUTLINE*TEETH_MOUTH_RATIO)
+#define TEETH_RADIUS_FILL (MOUTH_RADIUS_FILL*TEETH_MOUTH_RATIO)
+#define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.3165)
+#define TEETH_SCALE_Y_FACTOR (MOUTH_SCALE_Y_FACTOR/1.5)
+#define TEETH_Y_OFFSET_MIDDLE MOUTH_Y_OFFSET*0.85
+#define TEETH_Y_OFFSET_BOTTOM MOUTH_Y_OFFSET*0.85
+
 #define EYE_RADIUS 1.5f
 #define EYE_Y_OFFSET -1.5f
 #define EYE_X_SPACING 3.75f
@@ -64,12 +72,12 @@ float tx = 0.0, ty=1;
 
 //display list - a pre compiled list of OpenGL commands stored on the GPU
 GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list,
-    bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill, hat_list_outline, hat_list_fill;
+    bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill,
+    hat_list_outline, hat_list_fill, teeth_list_outline, teeth_list_fill;
 
-
-
-
-
+  /////////////////////////////////////
+ /*			DRAW FUNCTIONS			*/
+/////////////////////////////////////
 
 std::vector<vec3> createCircle(float radius, int vertex_count, float circle_angle) {
     std::vector<vec3> vertices;
@@ -104,15 +112,50 @@ void drawCircle(float radius, int vertex_count) {
     glEnd();
 }
 
+void drawCircleSlice(float radius, float start_angle, float end_angle) {
+    //basically a rewrite of drawCircle but it draws a slice between 2 angles: 0-360=full - 0-180=half...
+    std::vector<vec3> vertices;
+    float vertex_count = CIRCLE_NUM_VERTICES;
+    float angle_range = end_angle - start_angle;
+
+    for (int i = 0; i <= vertex_count; i++) {
+        float current_angle = start_angle + (angle_range * i / vertex_count);
+        float x = radius * cos(DEG_TO_RAD(current_angle));
+        float y = radius * sin(DEG_TO_RAD(current_angle));
+        vertices.push_back({x, y, 0.0f});
+    }
+
+    glBegin(GL_POLYGON);
+    for (vec3 vertex : vertices) {
+        glVertex2f(vertex.x, vertex.y);
+    }
+    glEnd();
+
+}
+
 void drawHead(float head_radius) {
     drawCircle(head_radius, CIRCLE_NUM_VERTICES);
 }
 
 void drawMouth(float mouth_radius) {
+    //chin
     glPushMatrix();
     glTranslatef(0.0, MOUTH_Y_OFFSET, 0.0);
     glScalef(MOUTH_SCALE_X_FACTOR, MOUTH_SCALE_Y_FACTOR, 0.0);
     drawCircle(mouth_radius, CIRCLE_NUM_VERTICES);
+   glPopMatrix();
+}
+
+void drawTeeth(float teeth_radius) {
+    //middle
+    glPushMatrix();
+    glTranslatef(0.0, TEETH_Y_OFFSET_MIDDLE, 0.0);
+    glScalef(TEETH_SCALE_X_FACTOR, TEETH_SCALE_Y_FACTOR, 0.0);
+    drawCircleSlice(teeth_radius, 200, 340);
+
+    //bottom
+    glTranslatef(0.0, TEETH_Y_OFFSET_BOTTOM, 0.0);
+    drawCircleSlice(teeth_radius, 200, 340);
     glPopMatrix();
 }
 
@@ -171,13 +214,6 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center, f
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(0, bone_radius*bone_ball_dist, 0); //start at center - move up 0.75 radius
-        drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //firsst 'bone-ball'
-        glTranslatef(0, -bone_radius*(2*bone_ball_dist), 0); //move down 1.5 radius (0.75 each side)
-        drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //second 'bone-ball'
-        glPopMatrix();
-
-        glPushMatrix();
         glTranslatef(bone_dist_from_center, bone_radius*bone_ball_dist, 0); //move to where the end of the bone should be
         drawCircle(bone_radius, CIRCLE_NUM_VERTICES);
         glTranslatef(0, -bone_radius*(2*bone_ball_dist), 0); // lower ball
@@ -210,28 +246,17 @@ void drawBrim(float brim_radius, float brim_length) {
 }
 
 void drawHat(float hat_radius, float start_angle, float end_angle) {
-    //basically a rewrite of drawCircle but it draws a slice between 2 angles: 0-360=full - 0-180=half...
-    std::vector<vec3> vertices;
-    float vertex_count = CIRCLE_NUM_VERTICES;
-    float angle_range = end_angle - start_angle;
-
-    for (int i = 0; i <= vertex_count; i++) {
-        float current_angle = start_angle + (angle_range * i / vertex_count);
-        float x = hat_radius * cos(DEG_TO_RAD(current_angle));
-        float y = hat_radius * sin(DEG_TO_RAD(current_angle));
-        vertices.push_back({x, y, 0.0f});
-    }
-
     glPushMatrix();
     glTranslatef(0, BRIM_Y_OFFSET, 0);
-    glBegin(GL_POLYGON);
-    for (vec3 vertex : vertices) {
-        glVertex2f(vertex.x, vertex.y);
-    }
-    glEnd();
+    drawCircleSlice(hat_radius, start_angle, end_angle);
     glPopMatrix();
-
 }
+
+
+
+  /////////////////////////////////////
+ /*			DISPLAY LIST			*/
+/////////////////////////////////////
 
 void createDisplayList() {
     //head
@@ -254,6 +279,17 @@ void createDisplayList() {
     mouth_list_fill = glGenLists(1);
     glNewList(mouth_list_fill, GL_COMPILE);
     drawMouth(MOUTH_RADIUS_FILL);
+    glEndList();
+
+    //teeth
+    teeth_list_outline = glGenLists(1);
+    glNewList(teeth_list_outline, GL_COMPILE);
+    drawTeeth(TEETH_RADIUS_OUTLINE);
+    glEndList();
+
+    teeth_list_fill = glGenLists(1);
+    glNewList(teeth_list_fill, GL_COMPILE);
+    drawTeeth(TEETH_RADIUS_FILL);
     glEndList();
 
     //eyes
@@ -288,6 +324,7 @@ void createDisplayList() {
     hat_list_outline = glGenLists(1);
     glNewList(hat_list_outline, GL_COMPILE);
     drawHat(HAT_RADIUS_OUTLINE, 0, 180);
+    glEndList();
 
     hat_list_fill = glGenLists(1);
     glNewList(hat_list_fill, GL_COMPILE);
@@ -295,6 +332,10 @@ void createDisplayList() {
     glEndList();
 
 }
+
+  /////////////////////////////////////////
+ /*			FromList Functions			*/
+/////////////////////////////////////////
 
 void drawHeadOutlineFromList() {
     glColor3f(0.0, 0.0, 0.0);
@@ -314,6 +355,17 @@ void drawMouthOutlineFromList() {
 void drawMouthFillFromList() {
     glColor3f(1.0, 1.0, 1.0);
     glCallList(mouth_list_fill);
+}
+
+
+void drawTeethOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
+    glCallList(teeth_list_outline);
+}
+
+void drawTeethFillFromList() {
+    glColor3f(1.0, 1.0, 1.0);
+    glCallList(teeth_list_fill);
 }
 
 void drawEyesFromList() {
@@ -352,7 +404,9 @@ void drawHatFillFromList() {
 }
 
 
-
+  /////////////////////////////
+ /*			DISPLAY			*/
+/////////////////////////////
 
 void display(void)
 {
@@ -372,6 +426,10 @@ void display(void)
     //then mouth
     drawMouthOutlineFromList();
     drawMouthFillFromList();
+
+    //teeth
+    drawTeethOutlineFromList();
+    drawTeethFillFromList();
 
     //head
     drawHeadOutlineFromList();
