@@ -14,18 +14,23 @@
 #define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
 
 #define BONE_COUNT 4
-#define BONE_RADIUS_OUTLINE 1.5f
-#define BONE_RADIUS_FILL 1.3f
+#define BONE_RADIUS_OUTLINE 1.3f
+#define BONE_RADIUS_FILL 1.1f
 #define BONE_DIST_FROM_CENTER 9.0f
 #define BONE_LENGTH 2.5f
 #define BONE_ROTATION_OFFSET 45.0f
 #define BONE_Y_OFFSET -1.5f
+#define BONE_BALL_DIST_OUTLINE 0.8f
+#define BONE_BALL_DIST_FILL 0.9f
+#define BONE_BODY_SCALE_FACTOR 1.6f
+
 
 #define HEAD_SCALE_FACTOR 0.95f
 #define HEAD_RADIUS_OUTLINE 5.0f
-#define HEAD_RADIUS_FILL 4.0f
+#define HEAD_RADIUS_FILL 4.8f
 
-#define MOUTH_RADIUS 4.5f
+#define MOUTH_RADIUS_OUTLINE 4.5f
+#define MOUTH_RADIUS_FILL 4.2f
 #define MOUTH_SCALE_X_FACTOR 0.75f
 #define MOUTH_SCALE_Y_FACTOR 0.9f
 #define MOUTH_Y_OFFSET -5.0f
@@ -34,13 +39,12 @@
 #define EYE_Y_OFFSET -1.5f
 #define EYE_X_SPACING 3.75f
 
-#define CIRCLE_NUM_VERTICES 50
-
 #define BRIM_LENGTH_OUTLINE 7
 #define BRIM_RADIUS_OUTLINE 0.5
 #define BRIM_LENGTH_FILL 6.9
 #define BRIM_RADIUS_FILL 0.35
 
+#define CIRCLE_NUM_VERTICES 50
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
@@ -48,7 +52,7 @@ float tx = 0.0, ty=1;
 
 
 //display list - a pre compiled list of OpenGL commands stored on the GPU
-GLuint head_list_fill, head_list_outline, mouth_list, eye_list, bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill;
+GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list, bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill;
 
 
 typedef struct {
@@ -94,11 +98,11 @@ void drawHead(float head_radius) {
     drawCircle(head_radius, CIRCLE_NUM_VERTICES);
 }
 
-void drawMouth() {
+void drawMouth(float mouth_radius) {
     glPushMatrix();
     glTranslatef(0.0, MOUTH_Y_OFFSET, 0.0);
     glScalef(MOUTH_SCALE_X_FACTOR, MOUTH_SCALE_Y_FACTOR, 0.0);
-    drawCircle(MOUTH_RADIUS, CIRCLE_NUM_VERTICES);
+    drawCircle(mouth_radius, CIRCLE_NUM_VERTICES);
     glPopMatrix();
 }
 
@@ -130,7 +134,7 @@ void drawBoneBody(float length, float width) {
 
 }
 
-void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
+void drawBones(int bone_count, float bone_radius, float bone_dist_from_center, float bone_ball_dist) {
     /*
      * drawCricle,
      * translate it to the edge of the screen,
@@ -153,20 +157,20 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center) {
 
         glPushMatrix();
         glTranslatef(bone_dist_from_center/2, 0, 0); //go to between the end of the bone and the center
-        drawBoneBody(bone_dist_from_center, bone_radius*0.8f);//draw a rectangle extending outward both ways
+        drawBoneBody(bone_dist_from_center, bone_radius*BONE_BODY_SCALE_FACTOR);//draw a rectangle extending outward both ways
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(0, bone_radius*0.75, 0); //start at center - move up 0.75 radius
+        glTranslatef(0, bone_radius*bone_ball_dist, 0); //start at center - move up 0.75 radius
         drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //firsst 'bone-ball'
-        glTranslatef(0, -bone_radius*1.5, 0); //move down 1.5 radius (0.75 each side)
+        glTranslatef(0, -bone_radius*(2*bone_ball_dist), 0); //move down 1.5 radius (0.75 each side)
         drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //second 'bone-ball'
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(bone_dist_from_center, bone_radius*0.75, 0); //move to where the end of the bone should be
+        glTranslatef(bone_dist_from_center, bone_radius*bone_ball_dist, 0); //move to where the end of the bone should be
         drawCircle(bone_radius, 20);
-        glTranslatef(0, -bone_radius * 1.5, 0); // lower ball
+        glTranslatef(0, -bone_radius*(2*bone_ball_dist), 0); // lower ball
         drawCircle(bone_radius, 20);
         glPopMatrix();
 
@@ -208,9 +212,14 @@ void createDisplayList() {
     glEndList();
 
     //mouth
-    mouth_list = glGenLists(1);
-    glNewList(mouth_list, GL_COMPILE);
-    drawMouth();
+    mouth_list_outline = glGenLists(1);
+    glNewList(mouth_list_outline, GL_COMPILE);
+    drawMouth(MOUTH_RADIUS_OUTLINE);
+    glEndList();
+
+    mouth_list_fill = glGenLists(1);
+    glNewList(mouth_list_fill, GL_COMPILE);
+    drawMouth(MOUTH_RADIUS_FILL);
     glEndList();
 
     //eyes
@@ -222,12 +231,12 @@ void createDisplayList() {
     //bones
     bone_list_outline = glGenLists(1);
     glNewList(bone_list_outline, GL_COMPILE);
-    drawBones(BONE_COUNT, BONE_RADIUS_OUTLINE, BONE_DIST_FROM_CENTER);
+    drawBones(BONE_COUNT, BONE_RADIUS_OUTLINE, BONE_DIST_FROM_CENTER, BONE_BALL_DIST_OUTLINE);
     glEndList();
 
     bone_list_fill= glGenLists(1);
     glNewList(bone_list_fill, GL_COMPILE);
-    drawBones(BONE_COUNT, BONE_RADIUS_FILL, BONE_DIST_FROM_CENTER);
+    drawBones(BONE_COUNT, BONE_RADIUS_FILL, BONE_DIST_FROM_CENTER, BONE_BALL_DIST_FILL);
     glEndList();
 
     //brim
@@ -244,6 +253,7 @@ void createDisplayList() {
 }
 
 void drawHeadOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
     glCallList(head_list_outline);
 }
 
@@ -252,24 +262,33 @@ void drawHeadFillFromList() {
     glCallList(head_list_fill);
 }
 
-void drawMouthFromList() {
-    glCallList(mouth_list);
+void drawMouthOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
+    glCallList(mouth_list_outline);
+}
+
+void drawMouthFillFromList() {
+    glColor3f(1.0, 1.0, 1.0);
+    glCallList(mouth_list_fill);
 }
 
 void drawEyesFromList() {
+    glColor3f(0.0, 0.0, 0.0);
     glCallList(eye_list);
 }
 
 void drawBonesOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
     glCallList(bone_list_outline);
 }
 
 void drawBonesFillFromList() {
-    glColor3f(1.0, 1.0, 0.0);
+    glColor3f(1.0, 1.0, 1.0);
     glCallList(bone_list_fill);
 }
 
 void drawBrimOutlineFromList() {
+    glColor3f(0.0, 0.0, 0.0);
     glCallList(brim_list_outline);
 }
 
@@ -292,27 +311,21 @@ void display(void)
     glTranslatef(tx, ty, 0);
     glRotatef(alpha, 0, 0, 1);
 
-    //drawing
-    //draw outline/border first (black)
-    glColor3f(0.0, 0.0, 0.0);
-    drawMouthFromList();
-    drawHeadOutlineFromList();
+    //bones first
     drawBonesOutlineFromList();
-    drawBrimOutlineFromList();
-
-
-    glColor3f(1.0, 1.0, 1.0);
-    //draw coloured sections (scaled down/coloured)
-    glPushMatrix();
     drawBonesFillFromList();
+
+    //then mouth
+    drawMouthOutlineFromList();
+    drawMouthFillFromList();
+
+    drawHeadOutlineFromList();
     drawHeadFillFromList();
+
+    drawBrimOutlineFromList();
     drawBrimFillFromList();
-    glScalef(0.95, 0.95, 0.0);
-    drawMouthFromList();
-    glPopMatrix();
 
 
-    glColor3f(0.0, 0.0, 0.0);
     drawEyesFromList();
 
     glPopMatrix();
