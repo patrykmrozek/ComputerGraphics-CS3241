@@ -132,7 +132,7 @@ std::vector<vec3> createCircle(float radius, int vertex_count, float circle_angl
         float current_angle = angle * i;
         float x = radius * cos(DEG_TO_RAD(current_angle));
         float y = radius * sin(DEG_TO_RAD(current_angle));
-        temp.push_back({x, y, 0.0f});
+        temp.push_back((vec3){x, y, 0.0f});
     }
 
     //all triangles are generated from a common vertex - in this case temp[0]
@@ -165,7 +165,7 @@ void drawCircleSlice(float radius, float start_angle, float end_angle) {
         float current_angle = start_angle + (angle_range * i / vertex_count);
         float x = radius * cos(DEG_TO_RAD(current_angle));
         float y = radius * sin(DEG_TO_RAD(current_angle));
-        vertices.push_back({x, y, 0.0f});
+        vertices.push_back((vec3){x, y, 0.0f});
     }
 
     glBegin(GL_POLYGON);
@@ -339,7 +339,7 @@ void drawRibbon(float hat_radius, float ribbon_height, float vertex_count) {
         float current_angle = 10.0f + (10.0f * i / vertex_count); //first 10 deg (0 - 10)
         float x = hat_radius * cos(DEG_TO_RAD(current_angle));
         float y = hat_radius * sin(DEG_TO_RAD(current_angle));
-        vertices.push_back({x, y, 0.0f});
+        vertices.push_back((vec3){x, y, 0.0f});
     }
 
     //reversed the loop so that when drawing, they connect at the same height
@@ -347,7 +347,7 @@ void drawRibbon(float hat_radius, float ribbon_height, float vertex_count) {
         float current_angle = 160.0f + (10.0f * i / vertex_count); //last 10 deg (170 - 180)
         float x = hat_radius * cos(DEG_TO_RAD(current_angle));
         float y = hat_radius * sin(DEG_TO_RAD(current_angle));
-        vertices.push_back({x, y, 0.0f});
+        vertices.push_back((vec3){x, y, 0.0f});
     }
 
     glPushMatrix();
@@ -725,7 +725,7 @@ int main(int argc, char **argv)
 
     glutInit(&argc, argv);
     glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize (800, 800);
+    glutInitWindowSize (870, 850);
     glutInitWindowPosition (50, 50);
     glutCreateWindow (argv[0]);
     init ();
