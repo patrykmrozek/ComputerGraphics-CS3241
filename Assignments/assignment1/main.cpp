@@ -24,7 +24,6 @@
 #define BONE_BALL_DIST_FILL 0.9f
 #define BONE_BODY_SCALE_FACTOR 1.6f
 
-
 #define HEAD_SCALE_FACTOR 0.95f
 #define HEAD_RADIUS_OUTLINE 5.0f
 #define HEAD_RADIUS_FILL 4.8f
@@ -45,6 +44,8 @@
 #define BRIM_RADIUS_FILL 0.35
 
 #define CIRCLE_NUM_VERTICES 50
+#define CIRCLE_ANGLE_FULL 360.0f
+#define CIRCLE_ANGLE_HALF 180.0f
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1;
@@ -52,7 +53,8 @@ float tx = 0.0, ty=1;
 
 
 //display list - a pre compiled list of OpenGL commands stored on the GPU
-GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list, bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill;
+GLuint head_list_fill, head_list_outline, mouth_list_outline, mouth_list_fill, eye_list,
+    bone_list_outline, bone_list_fill, brim_list_outline, brim_list_fill, hat_list;
 
 
 typedef struct {
@@ -61,9 +63,9 @@ typedef struct {
 
 
 
-std::vector<vec3> createCircle(float radius, int vertex_count) {
+std::vector<vec3> createCircle(float radius, int vertex_count, float circle_angle) {
     std::vector<vec3> vertices;
-    float angle = 360.0f / vertex_count;
+    float angle = circle_angle / vertex_count;
     int triangle_count = vertex_count - 2; //n vertices = n-2 triangles - eg pentagon needs only 3 triangles
     std::vector<vec3> temp;
 
@@ -84,8 +86,8 @@ std::vector<vec3> createCircle(float radius, int vertex_count) {
     return vertices;
 }
 
-void drawCircle(float radius, int vertex_count) {
-    std::vector<vec3> circle_vertices = createCircle(radius, vertex_count);
+void drawCircle(float radius, int vertex_count, bool full_circle) {
+    std::vector<vec3> circle_vertices = full_circle ? createCircle(radius, vertex_count, CIRCLE_ANGLE_FULL) : createCircle(radius, vertex_count, CIRCLE_ANGLE_HALF);
     glBegin(GL_POLYGON);
     for (vec3 vertex : circle_vertices) {
         glVertex2f(vertex.x, vertex.y);
@@ -95,20 +97,20 @@ void drawCircle(float radius, int vertex_count) {
 }
 
 void drawHead(float head_radius) {
-    drawCircle(head_radius, CIRCLE_NUM_VERTICES);
+    drawCircle(head_radius, CIRCLE_NUM_VERTICES, true);
 }
 
 void drawMouth(float mouth_radius) {
     glPushMatrix();
     glTranslatef(0.0, MOUTH_Y_OFFSET, 0.0);
     glScalef(MOUTH_SCALE_X_FACTOR, MOUTH_SCALE_Y_FACTOR, 0.0);
-    drawCircle(mouth_radius, CIRCLE_NUM_VERTICES);
+    drawCircle(mouth_radius, CIRCLE_NUM_VERTICES, true);
     glPopMatrix();
 }
 
 void drawEye() {
     glColor3f(0.0, 0.0, 0.0);
-    drawCircle(EYE_RADIUS,  CIRCLE_NUM_VERTICES);
+    drawCircle(EYE_RADIUS,  CIRCLE_NUM_VERTICES, true);
 }
 
 void drawEyes() {
@@ -162,16 +164,16 @@ void drawBones(int bone_count, float bone_radius, float bone_dist_from_center, f
 
         glPushMatrix();
         glTranslatef(0, bone_radius*bone_ball_dist, 0); //start at center - move up 0.75 radius
-        drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //firsst 'bone-ball'
+        drawCircle(bone_radius, CIRCLE_NUM_VERTICES, true); //firsst 'bone-ball'
         glTranslatef(0, -bone_radius*(2*bone_ball_dist), 0); //move down 1.5 radius (0.75 each side)
-        drawCircle(bone_radius, CIRCLE_NUM_VERTICES); //second 'bone-ball'
+        drawCircle(bone_radius, CIRCLE_NUM_VERTICES, true); //second 'bone-ball'
         glPopMatrix();
 
         glPushMatrix();
         glTranslatef(bone_dist_from_center, bone_radius*bone_ball_dist, 0); //move to where the end of the bone should be
-        drawCircle(bone_radius, 20);
+        drawCircle(bone_radius, CIRCLE_NUM_VERTICES, true);
         glTranslatef(0, -bone_radius*(2*bone_ball_dist), 0); // lower ball
-        drawCircle(bone_radius, 20);
+        drawCircle(bone_radius, CIRCLE_NUM_VERTICES, true);
         glPopMatrix();
 
         glPopMatrix();
@@ -184,9 +186,9 @@ void drawBrim(float brim_radius, float brim_length) {
     //draw small circle on one side - rectangle to the other side - another circle
     glPushMatrix();
     glTranslatef(-brim_length, 1, 0); //left side circle
-    drawCircle(brim_radius, CIRCLE_NUM_VERTICES/2);
+    drawCircle(brim_radius, CIRCLE_NUM_VERTICES/2, true);
     glTranslatef(2*brim_length, 0, 0); //right side circle
-    drawCircle(brim_radius, CIRCLE_NUM_VERTICES/2);
+    drawCircle(brim_radius, CIRCLE_NUM_VERTICES/2, true);
 
     glBegin(GL_POLYGON);
     glVertex2f(0, brim_radius);//TR
@@ -197,6 +199,10 @@ void drawBrim(float brim_radius, float brim_length) {
 
     glPopMatrix();
 
+}
+
+void drawHat(float hat_radius) {
+    drawCircle(hat_radius, CIRCLE_NUM_VERTICES, false);
 }
 
 void createDisplayList() {
@@ -250,6 +256,12 @@ void createDisplayList() {
     drawBrim(BRIM_RADIUS_FILL, BRIM_LENGTH_FILL);
     glEndList();
 
+    //hat
+    hat_list = glGenLists(1);
+    glNewList(hat_list, GL_COMPILE);
+    drawHat(HEAD_RADIUS_FILL); //exact size of the head fill - so the head outline also outlines the hat
+    glEndList();
+
 }
 
 void drawHeadOutlineFromList() {
@@ -297,6 +309,11 @@ void drawBrimFillFromList() {
     glCallList(brim_list_fill);
 }
 
+void drawHatFromList() {
+    glColor3f(1.0, 1.0, 0.0);
+    glCallList(hat_list);
+}
+
 
 
 
@@ -319,13 +336,18 @@ void display(void)
     drawMouthOutlineFromList();
     drawMouthFillFromList();
 
+    //head
     drawHeadOutlineFromList();
     drawHeadFillFromList();
 
+    //hat
+    drawHatFromList();
+
+    //brim
     drawBrimOutlineFromList();
     drawBrimFillFromList();
 
-
+    //eyes
     drawEyesFromList();
 
     glPopMatrix();
