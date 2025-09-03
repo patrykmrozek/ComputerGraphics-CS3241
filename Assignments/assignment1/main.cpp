@@ -12,6 +12,7 @@
 
 #define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
 #define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
+#define CLAMP(x, y) (if (x >= y) x -= x))
 
 #define BONE_COUNT 4
 #define BONE_RADIUS_OUTLINE 1.3f
@@ -45,7 +46,9 @@
 #define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.3165f)
 #define TEETH_SCALE_Y_FACTOR (MOUTH_SCALE_Y_FACTOR/1.5f)
 #define TEETH_Y_OFFSET_MIDDLE (MOUTH_Y_OFFSET*0.75f)
-#define TEETH_Y_OFFSET_BOTTOM (MOUTH_Y_OFFSET*0.95f)
+#define TEETH_Y_OFFSET_BOTTOM (MOUTH_Y_OFFSET*0.975f)
+#define TEETH_START_ANGLE 200.0f
+#define TEETH_END_ANGLE 340.0f
 
 #define EYE_RADIUS 1.4f
 #define EYE_Y_OFFSET -1.5f
@@ -60,13 +63,13 @@
 #define HAT_RADIUS_OUTLINE HEAD_RADIUS_OUTLINE
 #define HAT_RADIUS_FILL HEAD_RADIUS_FILL
 
-#define CIRCLE_NUM_VERTICES 50
+#define CIRCLE_NUM_VERTICES 360
 #define CIRCLE_ANGLE_FULL 360.0f
 #define CIRCLE_ANGLE_HALF 180.0f
 
 #define RIBBON_NUM_VECTORS 100
-#define RIBBON_OUTLINE_RADIUS 1.35
-#define RIBBON_FILL_RADIUS 1.2
+#define RIBBON_OUTLINE_RADIUS 1.35f
+#define RIBBON_FILL_RADIUS 1.2f
 
 typedef struct {
     float x, y, z;
@@ -171,7 +174,7 @@ void drawTeeth(float teeth_radius, float teeth_y_offset) {
     glPushMatrix();
     glTranslatef(0.0, teeth_y_offset, 0.0);
     glScalef(TEETH_SCALE_X_FACTOR, TEETH_SCALE_Y_FACTOR, 0.0);
-    drawCircleSlice(teeth_radius, 200.0, 340.0);
+    drawCircleSlice(teeth_radius, TEETH_START_ANGLE, TEETH_END_ANGLE);
     glPopMatrix();
 /*
     //middle
@@ -183,8 +186,25 @@ void drawTeeth(float teeth_radius, float teeth_y_offset) {
 */
 }
 
+void drawTooth(float tooth_width, float tooth_height, float y_offset, float tooth_angle) {
+    glPushMatrix();
+    for (int i = 0; i < 3; i++) {
+        glPushMatrix();
+        float current_angle = (-tooth_angle + (tooth_angle * i));//one tooth to the left - one in the middle - one on the right
+        glRotatef(current_angle, 0.0, 0.0, 1.0);
+        glTranslatef(0.0, y_offset, 0.0);
+        glBegin(GL_POLYGON);
+        glVertex2f(-tooth_width, 0.0);
+        glVertex2f(tooth_width, 0.0);
+        glVertex2f(tooth_width, -tooth_height);
+        glVertex2f(-tooth_width, -tooth_height);
+        glEnd();
+        glPopMatrix();
+    }
+    glPopMatrix();
+}
+
 void drawEye() {
-    glColor3f(0.0, 0.0, 0.0);
     drawCircle(EYE_RADIUS,  CIRCLE_NUM_VERTICES);
 }
 
@@ -554,6 +574,8 @@ void display(void)
     drawTeethMiddleOutlineFromList();
     drawTeethMiddleFillFromList();
 
+
+
     //head
     drawHeadOutlineFromList();
     drawHeadFillFromList();
@@ -572,6 +594,9 @@ void display(void)
 
     drawEyesFromList();
     drawNoseFromList();
+
+    glColor3f(0.0, 0.0, 0.0);
+    drawTooth(0.1, 2, MOUTH_Y_OFFSET, 13.5);
 
     glPopMatrix();
 
