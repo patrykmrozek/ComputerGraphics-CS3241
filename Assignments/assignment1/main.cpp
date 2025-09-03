@@ -28,6 +28,11 @@
 #define HEAD_RADIUS_OUTLINE 5.0f
 #define HEAD_RADIUS_FILL 4.8f
 
+#define NOSE_RADIUS 0.55f
+#define NOSE_Y_OFFSET -3.7
+#define NOSE_X_SCALE_FACTOR 1.2
+#define NOSE_Y_SCALE_FACTOR 0.8
+
 #define MOUTH_RADIUS_OUTLINE 4.5f
 #define MOUTH_RADIUS_FILL 4.2f
 #define MOUTH_SCALE_X_FACTOR 0.75f
@@ -37,20 +42,20 @@
 #define TEETH_MOUTH_RATIO 0.8
 #define TEETH_RADIUS_OUTLINE (MOUTH_RADIUS_OUTLINE*TEETH_MOUTH_RATIO)
 #define TEETH_RADIUS_FILL (MOUTH_RADIUS_FILL*TEETH_MOUTH_RATIO)
-#define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.318)
-#define TEETH_SCALE_Y_FACTOR (MOUTH_SCALE_Y_FACTOR/1.5)
-#define TEETH_Y_OFFSET_MIDDLE (MOUTH_Y_OFFSET*0.75)
-#define TEETH_Y_OFFSET_BOTTOM (MOUTH_Y_OFFSET*0.95)
+#define TEETH_SCALE_X_FACTOR (MOUTH_SCALE_X_FACTOR*1.3165f)
+#define TEETH_SCALE_Y_FACTOR (MOUTH_SCALE_Y_FACTOR/1.5f)
+#define TEETH_Y_OFFSET_MIDDLE (MOUTH_Y_OFFSET*0.75f)
+#define TEETH_Y_OFFSET_BOTTOM (MOUTH_Y_OFFSET*0.95f)
 
-#define EYE_RADIUS 1.5f
+#define EYE_RADIUS 1.4f
 #define EYE_Y_OFFSET -1.5f
-#define EYE_X_SPACING 3.75f
+#define EYE_X_SPACING 3.78f
 
-#define BRIM_LENGTH_OUTLINE 7
-#define BRIM_RADIUS_OUTLINE 0.5
-#define BRIM_LENGTH_FILL 6.9
-#define BRIM_RADIUS_FILL 0.35
-#define BRIM_Y_OFFSET 1
+#define BRIM_LENGTH_OUTLINE 7.0f
+#define BRIM_RADIUS_OUTLINE 0.5f
+#define BRIM_LENGTH_FILL 6.9f
+#define BRIM_RADIUS_FILL 0.35f
+#define BRIM_Y_OFFSET 1.0f
 
 #define HAT_RADIUS_OUTLINE HEAD_RADIUS_OUTLINE
 #define HAT_RADIUS_FILL HEAD_RADIUS_FILL
@@ -135,6 +140,14 @@ void drawCircleSlice(float radius, float start_angle, float end_angle) {
 
 void drawHead(float head_radius) {
     drawCircle(head_radius, CIRCLE_NUM_VERTICES);
+}
+
+void drawNose(float nose_radius) {
+    glPushMatrix();
+    glTranslatef(0.0, NOSE_Y_OFFSET, 0.0);
+    glScalef(NOSE_X_SCALE_FACTOR, NOSE_Y_SCALE_FACTOR, 1.0);
+    drawCircle(nose_radius, CIRCLE_NUM_VERTICES/2);
+    glPopMatrix();
 }
 
 void drawMouth(float mouth_radius) {
@@ -470,6 +483,8 @@ void display(void)
     drawBrimFillFromList();
 
     drawEyesFromList();
+
+    drawNose(0.55);
 
     glPopMatrix();
 
