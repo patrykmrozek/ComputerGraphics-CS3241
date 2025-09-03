@@ -270,6 +270,43 @@ void drawHat(float hat_radius, float start_angle, float end_angle) {
     glPopMatrix();
 }
 
+//essentially another copy of drawCircle, but Im only going to look at the first few vertices and the last few
+//and skip the middle section of vertices - so I can then use accurate coordinates following a curve
+//then use these vertices to create the 'ribbon' by joining the first batch with the second
+void drawRibbon(float hat_radius, float ribbon_height, float vertex_count) {
+    std::vector<vec3> vertices;
+
+    for (int i = 0; i < vertex_count; i++) {
+        float current_angle = 20 * i / vertex_count; //first 20 deg (0 - 20)
+        float x = hat_radius * cos(DEG_TO_RAD(current_angle));
+        float y = hat_radius * sin(DEG_TO_RAD(current_angle));
+        vertices.push_back({x, y, 0.0f});
+    }
+
+    //reversed the loop so that when drawing, they connect at the same height
+    for (int i = vertex_count-1; i >= 0; i--) {
+        float current_angle = 160 + (20 * i / vertex_count); //last 20 deg (160 - 180)
+        float x = hat_radius * cos(DEG_TO_RAD(current_angle));
+        float y = hat_radius * sin(DEG_TO_RAD(current_angle));
+        vertices.push_back({x, y, 0.0f});
+    }
+
+    glPushMatrix();
+    glTranslatef(0, BRIM_Y_OFFSET, 0);
+
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i < vertices.size(); i++) {
+        glVertex2f(vertices[i].x, vertices[i].y);
+        glVertex2f(vertices[i].x, vertices[i].y + ribbon_height);
+    }
+
+    //connect back to start
+    glVertex2f(vertices[0].x, vertices[0].y);
+    glVertex2f(vertices[0].x, vertices[0].y + ribbon_height);
+
+    glEnd();
+    glPopMatrix();
+}
 
 
   /////////////////////////////////////
@@ -489,6 +526,9 @@ void display(void)
     //hat
     drawHatOutlineFromList();
     drawHatFillFromList();
+
+    glColor3f(1.0, 0.0, 0.0);
+    drawRibbon(HAT_RADIUS_FILL, 1.5, 20);
 
     //brim
     drawBrimOutlineFromList();
