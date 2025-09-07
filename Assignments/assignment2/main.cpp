@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread> // Required for std::this_thread::sleep_for
 #include <chrono> // Required for std::chrono::milliseconds
+#include <vector>
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
 
@@ -18,11 +19,33 @@ typedef struct {
 
 typedef struct Body {
     Vec3 pos, color;
-    float size, r_speed, o_speed, o_rad, o_angle;
-    int depth;
+    float size, r_speed, o_speed, o_rad, o_angle; //rotation_speed, orbiting_xxx
     struct Body* anchor;
+    int depth;
 } Body;
 
+std::vector<Body> Bodies = {};
+
+
+Body createBody(Vec3 pos, float size, Body* anchor) {
+    //TODO
+}
+
+Body updateBody(Body* body) {
+    //TODO
+}
+
+Body renderBody(const Body* body) {
+    //TODO
+}
+
+
+
+
+
+
+
+/*
 void drawBody(double r) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //x = (r*sin(Phi)*cos(Theta))
@@ -61,7 +84,7 @@ void drawBody(double r) {
         }
     }
 }
-
+*/
 
 
 
@@ -100,7 +123,7 @@ void display(void)
     glTranslatef(tx, ty, 0);
 
 
-    drawBody(1.0);
+    //drawBody(1.0);
 
 
 	glPopMatrix();
