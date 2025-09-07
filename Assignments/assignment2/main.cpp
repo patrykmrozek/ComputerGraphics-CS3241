@@ -9,6 +9,10 @@
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
 
+#define MAX_BODIES 100
+
+int g_bodies = 0; //global bodies counter
+
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
 float tx = 0.0, ty=3.0;
@@ -27,16 +31,50 @@ typedef struct Body {
 std::vector<Body> Bodies = {};
 
 
-Body createBody(Vec3 pos, float size, Body* anchor) {
+
+Body createBody(
+                Vec3 pos, Vec3 color, float size, float r_speed,
+                float o_speed, float o_rad, float o_angle, Body* anchor) {
+
+    Body body = {
+        .pos = pos,
+        .color = color,
+        .size = size,
+        .r_speed = r_speed,
+        .o_speed = o_speed,
+        .o_rad = o_rad,
+        .o_angle = o_angle,
+        .anchor = anchor,
+        .depth = (anchor==nullptr) ? 0 : anchor->depth + 1
+    };
+
+    g_bodies++;
+
+    return body;
+}
+
+void updateBody(Body* body) {
     //TODO
 }
 
-Body updateBody(Body* body) {
+void renderBody(const Body* body) {
     //TODO
 }
 
-Body renderBody(const Body* body) {
-    //TODO
+Body createSun(Vec3 pos, Vec3 color, float size, float r_speed) {
+    return createBody(pos, color, size, r_speed, 0.0, 0.0, 0.0, NULL);
+}
+
+Body createPlanet(Body* sun, Vec3 color, float size, float r_speed,
+                  float o_speed, float o_rad) {
+    Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
+    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, sun);
+}
+
+Body createMoon(Body* planet, Vec3 color, float size, float r_speed,
+                float o_speed, float o_rad) {
+    Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
+    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, planet);
 }
 
 
