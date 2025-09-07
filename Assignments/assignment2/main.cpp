@@ -10,10 +10,20 @@
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
-float tx = 0.0, ty=0.0;
+float tx = 0.0, ty=3.0;
 
+typedef struct {
+    float x, y, z;
+} Vec3;
 
-void drawSphere(double r) {
+typedef struct Body {
+    Vec3 pos, color;
+    float size, r_speed, o_speed, o_rad, o_angle;
+    int depth;
+    struct Body* anchor;
+} Body;
+
+void drawBody(double r) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //x = (r*sin(Phi)*cos(Theta))
     //y = (r*sin(Phi)*sin(Theta))
@@ -85,10 +95,12 @@ void display(void)
 
 	//controls transformation
 	glScalef(k, k, k);	
-	glTranslatef(tx, ty, 0);	
     glRotatef(alpha, 0, 0, 1);
 
-    drawSphere(1.0);
+    glTranslatef(tx, ty, 0);
+
+
+    drawBody(1.0);
 
 
 	glPopMatrix();
@@ -97,6 +109,8 @@ void display(void)
 
 void idle() {
     alpha += 0.2;
+    ty = sin(alpha * 0.005);
+    tx = cos(alpha * 0.01);
     glutPostRedisplay();
 }
 
