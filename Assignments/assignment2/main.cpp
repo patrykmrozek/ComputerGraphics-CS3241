@@ -9,8 +9,8 @@
 #include <GLUT/GLUT.h>
 
 GLfloat GPI = (GLfloat)M_PI;
-float alpha = 0.0, k=1;
-float tx = 0.0, ty=1;
+float alpha = 0.0, k=1.0;
+float tx = 0.0, ty=0.0;
 
 
 void drawSphere(double r) {
@@ -21,7 +21,6 @@ void drawSphere(double r) {
     int n = 20;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 2*n; j++) {
-            //AntiClockwise
             //i, j, i, j TL
             float phi1 = i*M_PI/n;
             //i, j+1, i, j+1 BL
@@ -56,16 +55,16 @@ void drawSphere(double r) {
 
 
 
-void reshape (int w, int h)
-{
-	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
-
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity();
-
-	glOrtho(-10, 10, -10, 10, -10, 10);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+void reshape(int w, int h) {
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(60.0, (double)w/h, 0.1, 100.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(tx, ty, 5.0,  // eye position
+              0.0, 0.0, 0.0,  // look at center
+              0.0, 1.0, 0.0); // up vector
 }
 
 void init(void)
@@ -81,25 +80,24 @@ void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    drawSphere(10);
 	
 	glPushMatrix();
 
 	//controls transformation
 	glScalef(k, k, k);	
 	glTranslatef(tx, ty, 0);	
-	glRotatef(alpha, 0, 0, 1);
+    glRotatef(alpha, 0, 0, 1);
+
+    drawSphere(1.0);
 
 
 	glPopMatrix();
 	glFlush ();
 }
 
-void idle()
-{
-	// this idle function is to adjust the parameters for display() to draw
-	// You can modify the following for your assignment
-
+void idle() {
+    alpha += 0.2;
+    glutPostRedisplay();
 }
 
 void keyboard (unsigned char key, int x, int y)
@@ -113,6 +111,7 @@ void keyboard (unsigned char key, int x, int y)
 		case 'q':
 		case 'Q':
             exit(0);
+
     /*
 		case 't':
 			clockMode = !clockMode;
