@@ -192,7 +192,7 @@ void renderBody(const Body* body) {
 
     drawSphere(body->radius);
 
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(body->color.x/2, body->color.y/2, body->color.z/2);
     if (body->has_ring) {
         glPushMatrix();
         glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -247,8 +247,9 @@ void updateCamera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     float camera_dist = g_bodies[current_focus_index].radius * 10 * k;
-    if (camera_dist < 10.0f) camera_dist = 10.0f;
-    if (camera_dist > 50.0f) camera_dist = 50.0f;
+    float min_dist = g_bodies[current_focus_index].radius*2;
+    if (camera_dist < min_dist) camera_dist = min_dist;
+    if (camera_dist > min_dist*(100/min_dist)) camera_dist = min_dist*(100/min_dist);
     if (camera_mode == 0) {
         gluLookAt( current_focus.x, current_focus.y, current_focus.z+camera_dist,  // eye position
                   current_focus.x, current_focus.y, current_focus.z,  // look at center
@@ -317,17 +318,16 @@ void init(void) {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    renderText();
-
     updateCamera();
     glPushMatrix();
 
     for (int i = 0; i < g_body_count; i++) {
         renderBody(&g_bodies[i]);
     }
+    glPopMatrix();
 
-	glPopMatrix();
-	glFlush ();
+    renderText();
+    glFlush ();
 }
 
 void idle() {
