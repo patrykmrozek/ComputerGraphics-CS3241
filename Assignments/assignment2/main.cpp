@@ -20,7 +20,7 @@ typedef struct {
 
 typedef struct Body {
     Vec3 pos, color;
-    float size, r_speed, o_speed, o_rad, o_angle; //rotation_speed, orbiting_xxx
+    float size, o_speed, o_rad, o_angle; //rotation_speed, orbiting_xxx
     struct Body* anchor;
     int depth;
 } Body;
@@ -70,14 +70,13 @@ void drawSphere(double r) {
 }
 
 
-Body createBody(Vec3 pos, Vec3 color, float size, float r_speed,
-                float o_speed, float o_rad, float o_angle, Body* anchor) {
+Body createBody(Vec3 pos, Vec3 color, float size, float o_speed,
+                float o_rad, float o_angle, Body* anchor) {
 
     Body body = {
         .pos = pos,
         .color = color,
         .size = size,
-        .r_speed = r_speed,
         .o_speed = o_speed,
         .o_rad = o_rad,
         .o_angle = o_angle,
@@ -112,35 +111,35 @@ void renderBody(const Body* body) {
     glPopMatrix();
 }
 
-Body* createSun(Vec3 pos, Vec3 color, float size, float r_speed) {
-    g_bodies[g_body_count] = createBody(pos, color, size, r_speed, 0.0, 0.0, 0.0, NULL);
+Body* createSun(Vec3 pos, Vec3 color, float size) {
+    g_bodies[g_body_count] = createBody(pos, color, size, 0.0, 0.0, 0.0, NULL);
     return &g_bodies[g_body_count++];
 }
 
-Body* createPlanet(Body* sun, Vec3 color, float size, float r_speed,
+Body* createPlanet(Body* sun, Vec3 color, float size,
                   float o_speed, float o_rad) {
     Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
-    g_bodies[g_body_count] = createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, sun);
+    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, sun);
     return &g_bodies[g_body_count++];
 }
 
-Body* createMoon(Body* planet, Vec3 color, float size, float r_speed,
+Body* createMoon(Body* planet, Vec3 color, float size,
                 float o_speed, float o_rad) {
     Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
-    g_bodies[g_body_count] = createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, planet);
+    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, planet);
     return &g_bodies[g_body_count++];
 }
 
 void createSolarSystem() {
     Vec3 sun_pos = (Vec3){0.0, 0.0, 0.0};
     Vec3 sun_color = (Vec3){1.0, 1.0, 0.0};
-    Body* sun = createSun(sun_pos, sun_color, 1.0, 1.0);
+    Body* sun = createSun(sun_pos, sun_color, 1.0);
 
     Vec3 p1_color = (Vec3){0.0, 0.0, 1.0};
-    Body* p1 = createPlanet(sun, p1_color, 0.5, 1.0, 0.01, 3.0);
+    Body* p1 = createPlanet(sun, p1_color, 0.5, 0.01, 3.0);
 
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
-    Body* m1 = createMoon(p1, m1_color, 0.2, 1.0, 0.02, 1.0);
+    Body* m1 = createMoon(p1, m1_color, 0.2, 0.02, 1.0);
 }
 
 
