@@ -31,7 +31,7 @@ Body g_bodies[MAX_BODIES];
 
 
 void drawSphere(double r) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     //x = (r*sin(Phi)*cos(Theta))
     //y = (r*sin(Phi)*sin(Theta))
     //z = (r*cos(Phi))
@@ -96,8 +96,8 @@ void updateBody(Body* body) {
 
         //new pos based on anchor + orbit
         body->pos.x = body->anchor->pos.x + body->o_rad * cos(body->o_angle);
-        body->pos.y = body->anchor->pos.y + body->o_rad * sin(body->o_angle);
-        body->pos.z = body->anchor->pos.z;
+        body->pos.y = body->anchor->pos.y;
+        body->pos.z = body->anchor->pos.z + body->o_rad * sin(body->o_angle);
     }
 }
 
@@ -137,7 +137,7 @@ void createSolarSystem() {
     Body* sun = createSun(sun_pos, sun_color, 1.0, 1.0);
 
     Vec3 p1_color = (Vec3){0.0, 0.0, 1.0};
-    Body* p1 = createPlanet(sun, p1_color, 0.5, 1.0, 0.01, 1.7);
+    Body* p1 = createPlanet(sun, p1_color, 0.5, 1.0, 0.01, 3.0);
 
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
     Body* m1 = createMoon(p1, m1_color, 0.2, 1.0, 0.02, 1.0);
@@ -152,7 +152,7 @@ void reshape(int w, int h) {
     gluPerspective(60.0, (double)w/h, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, 5.0,  // eye position
+    gluLookAt(3.0, 3.0, 7.0,  // eye position
               0.0, 0.0, 0.0,  // look at center
               0.0, 1.0, 0.0); // up vector
 }
@@ -163,6 +163,10 @@ void init(void)
 	glShadeModel (GL_SMOOTH);
 	glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     createSolarSystem();
 }
 
