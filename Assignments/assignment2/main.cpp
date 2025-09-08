@@ -204,6 +204,20 @@ void createSolarSystem() {
 */
 }
 
+void updateCamera() {
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    if (camera_mode == 0) {
+        gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
+                  current_focus.x, current_focus.y, current_focus.z,  // look at center
+                  0.0, 1.0, 0.0); // up vector
+    } else {
+        gluLookAt(0.0, SUN_RADIUS*10, 0.0,
+                  current_focus.x, current_focus.y, current_focus.z,
+                  0.0, 0.0, 1.0);
+    }
+}
+
 
 void reshape(int w, int h) {
     glViewport(0, 0, w, h);
@@ -238,8 +252,7 @@ void init(void) {
 
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	
+    updateCamera();
 	glPushMatrix();
 
 
