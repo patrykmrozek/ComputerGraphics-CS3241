@@ -5,12 +5,15 @@
 #include <string.h>
 #include <iostream>
 #include <thread>
+#include <vector>
 #include <chrono>
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
 
+#define DEG_TO_RAD(x) ((x) * (M_PI / 180.0f))
+#define RAD_TO_DEG(x) ((x) * (180.0f / M_PI))
 
-//planets size relative to earth
+//planets radius relative to earth
 #define EARTH_RADIUS 0.1
 
 #define MERCURY_RADIUS EARTH_RADIUS * 0.38
@@ -64,10 +67,11 @@ typedef struct {
 
 typedef struct Body {
     Vec3 pos, color;
-    float size, o_speed, o_rad, o_angle; //orbiting_xxx
+    float radius, o_speed, o_rad, o_angle; //orbiting_xxx
     struct Body* anchor;
     int depth;
     std::string tag;
+    bool has_ring;
 } Body;
 
 
@@ -81,8 +85,34 @@ int current_focus_index = 0;
 Vec3 current_focus;
 float k = 1.0;
 
+void drawCircle(float radius) {
+    std::vector<Vec3> vertices;
+    float angle = 1.0;
+    int triangle_count = 360.0 - 2; //n vertices = n-2 triangles - eg pentagon needs only 3 triangles
+    std::vector<Vec3> temp;
+
+    for (int i = 0; i < 360; i++) {
+        float current_angle = angle * i;
+        float x = radius * cos(DEG_TO_RAD(current_angle));
+        float y = radius * sin(DEG_TO_RAD(current_angle));
+        temp.push_back((Vec3){x, y, 0.0f});
+    }
+
+    //all triangles are generated from a common vertex - in this case temp[0]
+    for (int i = 0; i < triangle_count; i++) {
+        vertices.push_back(temp[0]);	    //the origin vertex
+        vertices.push_back(temp[i + 1]);	//current vertex
+        vertices.push_back(temp[i + 2]);	//next vertex
+    }
 
 
+    glBegin(GL_POLYGON);
+    for (Vec3 vertex : vertices) {
+        glVertex2f(vertex.x, vertex.y);
+        //std::cout << vertex.x << " - " << vertex.y << "\n";
+    }
+    glEnd();
+}
 
 void drawSphere(double r) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -124,19 +154,20 @@ void drawSphere(double r) {
 }
 
 
-Body createBody(Vec3 pos, Vec3 color, float size, float o_speed,
-                float o_rad, float o_angle, Body* anchor, std::string tag) {
+Body createBody(Vec3 pos, Vec3 color, float radius, float o_speed, float o_rad,
+                float o_angle, Body* anchor, std::string tag, bool has_ring) {
 
     Body body = {
         .pos = pos,
         .color = color,
-        .size = size,
+        .radius = radius,
         .o_speed = o_speed,
         .o_rad = o_rad,
         .o_angle = o_angle,
         .anchor = anchor,
         .depth = (anchor==nullptr) ? 0 : anchor->depth + 1,
-        .tag = tag
+        .tag = tag,
+        .has_ring = has_ring
     };
 
     return body;
@@ -159,28 +190,34 @@ void renderBody(const Body* body) {
     glTranslatef(body->pos.x, body->pos.y, body->pos.z);
     glColor3f(body->color.x, body->color.y, body->color.z);
 
-    drawSphere(body->size);
+    drawSphere(body->radius);
+
+    glColor3f(1.0, 1.0, 1.0);
+    if (body->has_ring) {
+        glPushMatrix();
+        glRotatef(90.0, 1.0, 0.0, 0.0);
+        drawCircle(body->radius*2);
+    }
 
     glPopMatrix();
 }
-
 //wrapper functions
-Body* createSun(Vec3 pos, Vec3 color, float size, std::string tag) {
-    g_bodies[g_body_count] = createBody(pos, color, size, 0.0, 0.0, 0.0, NULL, tag);
+Body* createSun(Vec3 pos, Vec3 color, float radius, std::string tag) {
+    g_bodies[g_body_count] = createBody(pos, color, radius, 0.0, 0.0, 0.0, NULL, tag, false);
     return &g_bodies[g_body_count++];
 }
 
-Body* createPlanet(Body* sun, Vec3 color, float size,
-                  float o_speed, float o_rad, std::string tag) {
+Body* createPlanet(Body* sun, Vec3 color, float radius, float o_speed, float o_rad,
+                   std::string tag, bool has_ring) {
     Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
-    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, sun, tag);
+    g_bodies[g_body_count] = createBody(pos, color, radius, o_speed, o_rad, 0.0, sun, tag, has_ring);
     return &g_bodies[g_body_count++];
 }
 
-Body* createMoon(Body* planet, Vec3 color, float size,
-                float o_speed, float o_rad, std::string tag) {
+Body* createMoon(Body* planet, Vec3 color, float radius, float o_speed, float o_rad,
+                 std::string tag, bool has_ring) {
     Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
-    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, planet, tag);
+    g_bodies[g_body_count] = createBody(pos, color, radius, o_speed, o_rad, 0.0, planet, tag, false);
     return &g_bodies[g_body_count++];
 }
 
@@ -190,14 +227,14 @@ void createSolarSystem() {
     Body* sun = createSun(sun_pos, sun_color, SUN_RADIUS, "sun");
 
     //mercury - venus - earth - mars - jupiter - saturn - uranus - neptune
-    Body* mercury = createPlanet(sun, MERCURY_COLOR, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST, "mercury");
-    Body* venus = createPlanet(sun, VENUS_COLOR, VENUS_RADIUS, VENUS_SPEED, VENUS_DIST, "venus");
-    Body* earth = createPlanet(sun, EARTH_COLOR, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST, "earth");
-    Body* mars = createPlanet(sun, MARS_COLOR, MARS_RADIUS, MARS_SPEED, MARS_DIST, "mars");
-    Body* jupiter = createPlanet(sun, JUPITER_COLOR, JUPITER_RADIUS, JUPITER_SPEED, JUPITER_DIST, "jupiter");
-    Body* saturn = createPlanet(sun, SATURN_COLOR, SATURN_RADIUS, SATURN_SPEED, SATURN_DIST, "saturn");
-    Body* uranus = createPlanet(sun, URANUS_COLOR, URANUS_RADIUS, URANUS_SPEED, URANUS_DIST, "uranus");
-    Body* neptune = createPlanet(sun, NEPTUNE_COLOR, NEPTUNE_RADIUS, NEPTUNE_SPEED, NEPTUNE_DIST, "neptune");
+    Body* mercury = createPlanet(sun, MERCURY_COLOR, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST, "mercury", false);
+    Body* venus = createPlanet(sun, VENUS_COLOR, VENUS_RADIUS, VENUS_SPEED, VENUS_DIST, "venus", false);
+    Body* earth = createPlanet(sun, EARTH_COLOR, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST, "earth", false);
+    Body* mars = createPlanet(sun, MARS_COLOR, MARS_RADIUS, MARS_SPEED, MARS_DIST, "mars", false);
+    Body* jupiter = createPlanet(sun, JUPITER_COLOR, JUPITER_RADIUS, JUPITER_SPEED, JUPITER_DIST, "jupiter", false);
+    Body* saturn = createPlanet(sun, SATURN_COLOR, SATURN_RADIUS, SATURN_SPEED, SATURN_DIST, "saturn", true);
+    Body* uranus = createPlanet(sun, URANUS_COLOR, URANUS_RADIUS, URANUS_SPEED, URANUS_DIST, "uranus", false);
+    Body* neptune = createPlanet(sun, NEPTUNE_COLOR, NEPTUNE_RADIUS, NEPTUNE_SPEED, NEPTUNE_DIST, "neptune", false);
 
 
     /*
@@ -209,7 +246,7 @@ void createSolarSystem() {
 void updateCamera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    float camera_dist = g_bodies[current_focus_index].size * 10;
+    float camera_dist = g_bodies[current_focus_index].radius * 10 * k;
     if (camera_dist < 10.0f) camera_dist = 10.0f;
     if (camera_dist > 50.0f) camera_dist = 50.0f;
     if (camera_mode == 0) {
@@ -284,8 +321,6 @@ void display(void) {
 
     updateCamera();
     glPushMatrix();
-
-    glScalef(k, k, k);
 
     for (int i = 0; i < g_body_count; i++) {
         renderBody(&g_bodies[i]);
@@ -381,7 +416,7 @@ int main(int argc, char **argv)
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize (800, 800);
+    glutInitWindowSize(800, 800);
 	glutInitWindowPosition (50, 50);
 	glutCreateWindow (argv[0]);
 	init ();
