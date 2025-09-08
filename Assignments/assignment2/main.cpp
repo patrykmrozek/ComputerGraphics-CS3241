@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <time.h>
+#include <string.h>
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -16,8 +17,9 @@ typedef struct {
     float x, y, z;
 } Vec3;
 
-Vec3 current_focus = {0.0, 0.0, 0.0};
+Vec3 current_focus;
 int current_focus_index = 0;
+float k = 1.0;
 
 GLfloat GPI = (GLfloat)M_PI;
 
@@ -208,14 +210,40 @@ void updateCamera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     if (camera_mode == 0) {
-        gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
+        gluLookAt( current_focus.x, current_focus.y, current_focus.z+SUN_RADIUS*10,  // eye position
                   current_focus.x, current_focus.y, current_focus.z,  // look at center
                   0.0, 1.0, 0.0); // up vector
     } else {
-        gluLookAt(0.0, SUN_RADIUS*10, 0.0,
+        gluLookAt( current_focus.x,current_focus.y+SUN_RADIUS*10, current_focus.z,
                   current_focus.x, current_focus.y, current_focus.z,
                   0.0, 0.0, 1.0);
     }
+}
+
+void renderBitmapString(float x, float y, void* font, const char *string) {
+    glRasterPos2f(x, y);
+    for (const char *c = string; *c != '\0'; c++) {
+        glutBitmapCharacter(font, *c);
+    }
+}
+
+void renderText() {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1); //orthographic screen coords - text will be like an overlay
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+    glColor3f(1.0, 1.0, 1.0);
+    renderBitmapString(0.0f, 0.0f, GLUT_BITMAP_HELVETICA_10, "TEST");
+    glEnable(GL_DEPTH_TEST);
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -252,9 +280,13 @@ void init(void) {
 
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    updateCamera();
-	glPushMatrix();
 
+    renderText();
+
+    updateCamera();
+    glPushMatrix();
+
+    glScalef(k, k, k);
 
     for (int i = 0; i < g_body_count; i++) {
         renderBody(&g_bodies[i]);
@@ -306,6 +338,17 @@ void keyboard (unsigned char key, int x, int y)
                 reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
                 glutPostRedisplay();
             }
+            break;
+
+        case 'e':
+            if(k>0.1)
+                k-=0.1;
+            glutPostRedisplay();
+            break;
+
+        case 'r':
+            k+=0.1;
+            glutPostRedisplay();
             break;
 
     /*
