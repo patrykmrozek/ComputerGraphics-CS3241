@@ -24,17 +24,18 @@ float tx = 0.0, ty=0.0;
 #define SATURN_RADIUS EARTH_RADIUS * 9.14
 #define URANUS_RADIUS EARTH_RADIUS * 4.01
 #define NEPTUNE_RADIUS EARTH_RADIUS * 3.88
-#define SUN_RADIUS EARTH_RADIUS * 50.0 //scaled down by approx half
+#define SUN_RADIUS EARTH_RADIUS * 20.0 //scaled down by approx 0.2
 
-//planets distances from sun
-#define MERCURY_DIST 12.0
-#define VENUS_DIST 15.0
-#define EARTH_DIST 18.0
-#define MARS_DIST 21.0
-#define JUPITER_DIST 28.0
-#define SATURN_DIST 35.0
-#define URANUS_DIST 42.0
-#define NEPTUNE_DIST 50.0
+//planets distances from sun relative to earth
+#define EARTH_DIST 5.0
+
+#define MERCURY_DIST EARTH_DIST * 0.67
+#define VENUS_DIST EARTH_DIST * 0.83
+#define MARS_DIST EARTH_DIST * 1.17
+#define JUPITER_DIST EARTH_DIST * 1.56
+#define SATURN_DIST EARTH_DIST * 1.94
+#define URANUS_DIST EARTH_DIST * 2.33
+#define NEPTUNE_DIST EARTH_DIST * 2.78
 
 //orbiting speed for each planet
 #define EARTH_SPEED 0.01
