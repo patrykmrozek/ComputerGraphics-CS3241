@@ -17,6 +17,7 @@ typedef struct {
 } Vec3;
 
 Vec3 current_focus = {0.0, 0.0, 0.0};
+int current_focus_index = 0;
 
 GLfloat GPI = (GLfloat)M_PI;
 
@@ -260,6 +261,10 @@ void idle() {
         updateBody(&g_bodies[i]);
     }
 
+    if (current_focus_index < g_body_count) {
+        current_focus = g_bodies[current_focus_index].pos;
+    }
+
     glutPostRedisplay();
 }
 
@@ -273,6 +278,22 @@ void keyboard (unsigned char key, int x, int y)
         case 27: // press ESC to exit
 		case 'Q':
             exit(0);
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+            current_focus_index = key - '0'; // - '0' converts to ASCII
+            if (current_focus_index < g_body_count) {
+                current_focus = g_bodies[current_focus_index].pos;
+                reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+                glutPostRedisplay();
+            }
+            break;
 
     /*
 		case 't':
