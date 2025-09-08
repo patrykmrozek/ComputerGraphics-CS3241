@@ -3,8 +3,8 @@
 #include <iostream>
 #include <time.h>
 #include <iostream>
-#include <thread> // Required for std::this_thread::sleep_for
-#include <chrono> // Required for std::chrono::milliseconds
+#include <thread>
+#include <chrono>
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
 
@@ -14,13 +14,36 @@ GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
 float tx = 0.0, ty=0.0;
 
+#define EARTH_RADIUS 0.1
+//planets size relative to earth
+#define MERCURY_RADIUS EARTH_RADIUS * 0.38
+#define VENUS_RADIUS EARTH_RADIUS * 0.95
+#define MARS_RADIUS EARTH_RADIUS * 0.53
+#define JUPITER_RADIUS EARTH_RADIUS * 11.2
+#define SATURN_RADIUS EARTH_RADIUS * 9.14
+#define URANUS_RADIUS EARTH_RADIUS * 4.01
+#define NEPTUNE_RADIUS EARTH_RADIUS * 3.88
+#define SUN_RADIUS EARTH_RADIUS * 50.0
+
+//distances from the sun (in au - relative to earth)
+//reference: https://www.jpl.nasa.gov/_edu/pdfs/scaless_reference.pdf
+#define MERCURY_DIST 12.0
+#define VENUS_DIST 15.0
+#define EARTH_DIST 18.0
+#define MARS_DIST 21.0
+#define JUPITER_DIST 28.0
+#define SATURN_DIST 35.0
+#define URANUS_DIST 42.0
+#define NEPTUNE_DIST 50.0
+
+
 typedef struct {
     float x, y, z;
 } Vec3;
 
 typedef struct Body {
     Vec3 pos, color;
-    float size, o_speed, o_rad, o_angle; //rotation_speed, orbiting_xxx
+    float size, o_speed, o_rad, o_angle; //orbiting_xxx
     struct Body* anchor;
     int depth;
 } Body;
@@ -93,7 +116,7 @@ void updateBody(Body* body) {
     if (body->anchor != nullptr) { //if its not at depth 0 (not orbting)
         body->o_angle += body->o_speed;
 
-        //new pos based on anchor + orbit
+        //new pos based on anchor + orbit (x and z only)
         body->pos.x = body->anchor->pos.x + body->o_rad * cos(body->o_angle);
         body->pos.y = body->anchor->pos.y;
         body->pos.z = body->anchor->pos.z + body->o_rad * sin(body->o_angle);
@@ -111,6 +134,7 @@ void renderBody(const Body* body) {
     glPopMatrix();
 }
 
+//wrapper functions
 Body* createSun(Vec3 pos, Vec3 color, float size) {
     g_bodies[g_body_count] = createBody(pos, color, size, 0.0, 0.0, 0.0, NULL);
     return &g_bodies[g_body_count++];
@@ -133,31 +157,35 @@ Body* createMoon(Body* planet, Vec3 color, float size,
 void createSolarSystem() {
     Vec3 sun_pos = (Vec3){0.0, 0.0, 0.0};
     Vec3 sun_color = (Vec3){1.0, 1.0, 0.0};
-    Body* sun = createSun(sun_pos, sun_color, 1.0);
+    Body* sun = createSun(sun_pos, sun_color, SUN_RADIUS);
 
-    Vec3 p1_color = (Vec3){0.0, 0.0, 1.0};
-    Body* p1 = createPlanet(sun, p1_color, 0.5, 0.01, 3.0);
+    //mercury - venus - earth - mars - jupiter - saturn - uranus - neptune
+    Vec3 mercury_color = (Vec3){1.0, 1.0, 1.0};
+    Body* mercury = createPlanet(sun, mercury_color, 0.2, 0.04, MERCURY_DIST);
 
+    Vec3 earth_color = (Vec3){0.0, 0.0, 1.0};
+    Body* earth = createPlanet(sun, earth_color, 0.5, 0.05, EARTH_DIST);
+
+    /*
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
-    Body* m1 = createMoon(p1, m1_color, 0.2, 0.02, 1.0);
+    Body* m1 = createMoon(earth, m1_color, 0.2, 0.1, 1.5);
+*/
 }
-
 
 
 void reshape(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60.0, (double)w/h, 0.1, 100.0);
+    gluPerspective(60.0, (double)w/h, 0.1, SUN_RADIUS*20);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(3.0, 3.0, 7.0,  // eye position
+    gluLookAt(3.0, 3.0, SUN_RADIUS*5,  // eye position
               0.0, 0.0, 0.0,  // look at center
               0.0, 1.0, 0.0); // up vector
 }
 
-void init(void)
-{
+void init(void) {
     glClearColor (0.0, 0.0, 0.1, 1.0);
 	glShadeModel (GL_SMOOTH);
 	glEnable(GL_BLEND);
@@ -170,8 +198,7 @@ void init(void)
 }
 
 
-void display(void)
-{
+void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	
@@ -181,7 +208,7 @@ void display(void)
 	glScalef(k, k, k);	
     glRotatef(alpha, 0, 0, 1);
 
-    glTranslatef(tx, ty, 0);
+    //glTranslatef(tx, ty, 0);
 
     for (int i = 0; i < g_body_count; i++) {
         renderBody(&g_bodies[i]);
@@ -212,7 +239,6 @@ void keyboard (unsigned char key, int x, int y)
 	switch (key) {
 
         case 27: // press ESC to exit
-		case 'q':
 		case 'Q':
             exit(0);
 
@@ -225,6 +251,46 @@ void keyboard (unsigned char key, int x, int y)
 				cout << "Current Mode: Solar mode." << endl;
 			break;
 */
+        case 'a':
+            alpha+=10;
+            glutPostRedisplay();
+            break;
+
+        case 'd':
+            alpha-=10;
+            glutPostRedisplay();
+            break;
+
+        case 'q':
+            k+=0.1;
+            glutPostRedisplay();
+            break;
+
+        case 'e':
+            if(k>0.1)
+                k-=0.1;
+            glutPostRedisplay();
+            break;
+
+        case 'z':
+            tx-=0.1;
+            glutPostRedisplay();
+            break;
+
+        case 'c':
+            tx+=0.1;
+            glutPostRedisplay();
+            break;
+
+        case 's':
+            ty-=0.1;
+            glutPostRedisplay();
+            break;
+
+        case 'w':
+            ty+=0.1;
+            glutPostRedisplay();
+            break;
 
 		default:
 			break;
