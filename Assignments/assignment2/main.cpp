@@ -137,10 +137,10 @@ void createSolarSystem() {
     Body* sun = createSun(sun_pos, sun_color, 1.0, 1.0);
 
     Vec3 p1_color = (Vec3){0.0, 0.0, 1.0};
-    Body* p1 = createPlanet(&g_bodies[0], p1_color, 0.5, 1.0, 0.01, 1.7);
+    Body* p1 = createPlanet(sun, p1_color, 0.5, 1.0, 0.01, 1.7);
 
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
-    Body* m1 = createMoon(&g_bodies[1], m1_color, 0.2, 1.0, 0.02, 1.9);
+    Body* m1 = createMoon(p1, m1_color, 0.2, 1.0, 0.02, 1.0);
 }
 
 
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize (600, 600);
+    glutInitWindowSize (800, 800);
 	glutInitWindowPosition (50, 50);
 	glutCreateWindow (argv[0]);
 	init ();
