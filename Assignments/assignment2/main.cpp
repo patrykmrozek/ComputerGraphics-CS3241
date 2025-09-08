@@ -11,7 +11,7 @@
 
 #define MAX_BODIES 100
 
-int g_bodies = 0; //global bodies counter
+int g_body_count = 0; //global bodies counter
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
@@ -28,63 +28,9 @@ typedef struct Body {
     int depth;
 } Body;
 
-std::vector<Body> Bodies = {};
+std::vector<Body> g_bodies;;
 
-
-
-Body createBody(
-                Vec3 pos, Vec3 color, float size, float r_speed,
-                float o_speed, float o_rad, float o_angle, Body* anchor) {
-
-    Body body = {
-        .pos = pos,
-        .color = color,
-        .size = size,
-        .r_speed = r_speed,
-        .o_speed = o_speed,
-        .o_rad = o_rad,
-        .o_angle = o_angle,
-        .anchor = anchor,
-        .depth = (anchor==nullptr) ? 0 : anchor->depth + 1
-    };
-
-    g_bodies++;
-
-    return body;
-}
-
-void updateBody(Body* body) {
-    //TODO
-}
-
-void renderBody(const Body* body) {
-    //TODO
-}
-
-Body createSun(Vec3 pos, Vec3 color, float size, float r_speed) {
-    return createBody(pos, color, size, r_speed, 0.0, 0.0, 0.0, NULL);
-}
-
-Body createPlanet(Body* sun, Vec3 color, float size, float r_speed,
-                  float o_speed, float o_rad) {
-    Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
-    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, sun);
-}
-
-Body createMoon(Body* planet, Vec3 color, float size, float r_speed,
-                float o_speed, float o_rad) {
-    Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
-    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, planet);
-}
-
-
-
-
-
-
-
-/*
-void drawBody(double r) {
+void drawSphere(double r) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //x = (r*sin(Phi)*cos(Theta))
     //y = (r*sin(Phi)*sin(Theta))
@@ -122,7 +68,66 @@ void drawBody(double r) {
         }
     }
 }
-*/
+
+
+Body createBody(Vec3 pos, Vec3 color, float size, float r_speed,
+                float o_speed, float o_rad, float o_angle, Body* anchor) {
+
+    Body body = {
+        .pos = pos,
+        .color = color,
+        .size = size,
+        .r_speed = r_speed,
+        .o_speed = o_speed,
+        .o_rad = o_rad,
+        .o_angle = o_angle,
+        .anchor = anchor,
+        .depth = (anchor==nullptr) ? 0 : anchor->depth + 1
+    };
+
+    g_body_count++;
+
+    return body;
+}
+
+void updateBody(Body* body) {
+    //TODO
+    return;
+}
+
+void renderBody(const Body* body) {
+    glPushMatrix();
+
+    glTranslatef(body->pos.x, body->pos.y, body->pos.z);
+    glColor3f(body->color.x, body->color.y, body->color.z);
+
+    drawSphere(body->size);
+
+    glPopMatrix();
+}
+
+Body createSun(Vec3 pos, Vec3 color, float size, float r_speed) {
+    return createBody(pos, color, size, r_speed, 0.0, 0.0, 0.0, NULL);
+}
+
+Body createPlanet(Body* sun, Vec3 color, float size, float r_speed,
+                  float o_speed, float o_rad) {
+    Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
+    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, sun);
+}
+
+Body createMoon(Body* planet, Vec3 color, float size, float r_speed,
+                float o_speed, float o_rad) {
+    Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
+    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, planet);
+}
+
+void createSolarSystem() {
+    Vec3 sun_pos = (Vec3){0.0, 0.0, 0.0};
+    Vec3 sun_color = (Vec3){1.0, 1.0, 0.0};
+    Body sun = createSun(sun_pos, sun_color, 1.0, 1.0);
+    g_bodies.push_back(sun);
+}
 
 
 
@@ -143,7 +148,8 @@ void init(void)
     glClearColor (0.0, 0.0, 0.1, 1.0);
 	glShadeModel (GL_SMOOTH);
 	glEnable(GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    createSolarSystem();
 }
 
 
@@ -160,9 +166,9 @@ void display(void)
 
     glTranslatef(tx, ty, 0);
 
-
-    //drawBody(1.0);
-
+    for (int i = 0; i < g_bodies.size(); i++) {
+        renderBody(&g_bodies[i]);
+    }
 
 	glPopMatrix();
 	glFlush ();
