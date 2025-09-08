@@ -15,6 +15,7 @@ float alpha = 0.0, k=1.0;
 float tx = 0.0, ty=0.0;
 
 #define EARTH_RADIUS 0.1
+
 //planets size relative to earth
 #define MERCURY_RADIUS EARTH_RADIUS * 0.38
 #define VENUS_RADIUS EARTH_RADIUS * 0.95
@@ -23,10 +24,9 @@ float tx = 0.0, ty=0.0;
 #define SATURN_RADIUS EARTH_RADIUS * 9.14
 #define URANUS_RADIUS EARTH_RADIUS * 4.01
 #define NEPTUNE_RADIUS EARTH_RADIUS * 3.88
-#define SUN_RADIUS EARTH_RADIUS * 50.0
+#define SUN_RADIUS EARTH_RADIUS * 50.0 //scaled down by approx half
 
-//distances from the sun (in au - relative to earth)
-//reference: https://www.jpl.nasa.gov/_edu/pdfs/scaless_reference.pdf
+//planets distances from sun
 #define MERCURY_DIST 12.0
 #define VENUS_DIST 15.0
 #define EARTH_DIST 18.0
@@ -36,6 +36,15 @@ float tx = 0.0, ty=0.0;
 #define URANUS_DIST 42.0
 #define NEPTUNE_DIST 50.0
 
+//orbiting speed for each planet
+#define EARTH_SPEED 0.01
+#define MERCURY_SPEED EARTH_SPEED * 1.59
+#define VENUS_SPEED EARTH_SPEED * 1.18
+#define MARS_SPEED EARTH_SPEED * 0.81
+#define JUPITER_SPEED EARTH_SPEED * 0.44
+#define SATURN_SPEED EARTH_SPEED * 0.32
+#define URANUS_SPEED EARTH_SPEED * 0.23
+#define NEPTUNE_SPEED EARTH_SPEED * 0.18
 
 typedef struct {
     float x, y, z;
@@ -161,10 +170,10 @@ void createSolarSystem() {
 
     //mercury - venus - earth - mars - jupiter - saturn - uranus - neptune
     Vec3 mercury_color = (Vec3){1.0, 1.0, 1.0};
-    Body* mercury = createPlanet(sun, mercury_color, 0.2, 0.04, MERCURY_DIST);
+    Body* mercury = createPlanet(sun, mercury_color, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST);
 
     Vec3 earth_color = (Vec3){0.0, 0.0, 1.0};
-    Body* earth = createPlanet(sun, earth_color, 0.5, 0.05, EARTH_DIST);
+    Body* earth = createPlanet(sun, earth_color, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST);
 
     /*
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
