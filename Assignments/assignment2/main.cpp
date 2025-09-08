@@ -9,20 +9,6 @@
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
 
-int g_body_count = 0; //global bodies counter
-int camera_mode = 0; //0=default, 1=top-down
-
-
-typedef struct {
-    float x, y, z;
-} Vec3;
-
-Vec3 current_focus;
-int current_focus_index = 0;
-float k = 1.0;
-
-GLfloat GPI = (GLfloat)M_PI;
-
 
 //planets size relative to earth
 #define EARTH_RADIUS 0.1
@@ -58,6 +44,11 @@ GLfloat GPI = (GLfloat)M_PI;
 #define URANUS_SPEED EARTH_SPEED * 0.23
 #define NEPTUNE_SPEED EARTH_SPEED * 0.18
 
+typedef struct {
+    float x, y, z;
+} Vec3;
+
+
 //colors
 #define MERCURY_COLOR (Vec3){1.0, 0.8, 0.0}
 #define VENUS_COLOR (Vec3){1.0, 0.4, 0.1}
@@ -69,6 +60,8 @@ GLfloat GPI = (GLfloat)M_PI;
 #define NEPTUNE_COLOR (Vec3){0.0, 0.0, 1.0}
 
 
+#define MAX_BODIES 20
+
 typedef struct Body {
     Vec3 pos, color;
     float size, o_speed, o_rad, o_angle; //orbiting_xxx
@@ -78,8 +71,17 @@ typedef struct Body {
 } Body;
 
 
-#define MAX_BODIES 20
+
+int g_body_count = 0; //global bodies counter
+int camera_mode = 0; //0=default, 1=top-down
+
 Body g_bodies[MAX_BODIES];
+
+int current_focus_index = 0;
+Vec3 current_focus;
+float k = 1.0;
+
+
 
 
 void drawSphere(double r) {
@@ -136,8 +138,6 @@ Body createBody(Vec3 pos, Vec3 color, float size, float o_speed,
         .depth = (anchor==nullptr) ? 0 : anchor->depth + 1,
         .tag = tag
     };
-
-    g_body_count++;
 
     return body;
 }
@@ -209,12 +209,15 @@ void createSolarSystem() {
 void updateCamera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    float camera_dist = g_bodies[current_focus_index].size * 50;
+    if (camera_dist < 10.0f) camera_dist = 10.0f;
+    if (camera_dist > 50.0f) camera_dist = 50.0f;
     if (camera_mode == 0) {
-        gluLookAt( current_focus.x, current_focus.y, current_focus.z+SUN_RADIUS*10,  // eye position
+        gluLookAt( current_focus.x, current_focus.y, current_focus.z+camera_dist,  // eye position
                   current_focus.x, current_focus.y, current_focus.z,  // look at center
                   0.0, 1.0, 0.0); // up vector
     } else {
-        gluLookAt( current_focus.x,current_focus.y+SUN_RADIUS*10, current_focus.z,
+        gluLookAt( current_focus.x,current_focus.y+camera_dist, current_focus.z,
                   current_focus.x, current_focus.y, current_focus.z,
                   0.0, 0.0, 1.0);
     }
@@ -231,13 +234,16 @@ void renderText() {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+
     glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1); //orthographic screen coords - text will be like an overlay
+
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+
     glDisable(GL_DEPTH_TEST);
     glColor3f(1.0, 1.0, 1.0);
-    renderBitmapString(0.0f, 0.0f, GLUT_BITMAP_HELVETICA_10, "TEST");
+    renderBitmapString(50.0f, 50.0f, GLUT_BITMAP_HELVETICA_10, "TEST");
     glEnable(GL_DEPTH_TEST);
 
     glPopMatrix();
@@ -254,15 +260,6 @@ void reshape(int w, int h) {
     gluPerspective(60.0, (double)w/h, 0.1, SUN_RADIUS*20);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    if (camera_mode == 0) {
-        gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
-                current_focus.x, current_focus.y, current_focus.z,  // look at center
-                0.0, 1.0, 0.0); // up vector
-    } else {
-        gluLookAt(0.0, SUN_RADIUS*10, 0.0,
-                  current_focus.x, current_focus.y, current_focus.z,
-                  0.0, 0.0, 1.0);
-    }
 }
 
 void init(void) {
@@ -389,7 +386,12 @@ int main(int argc, char **argv)
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
 	glutReshapeFunc(reshape);	
-	//glutMouseFunc(mouse);
+    //glutMouseFunc(mouse);
+
+    for (int i = 0; i < g_body_count; i++) {
+        std::cout << "BODY " << i << ": " << g_bodies[i].tag << "\n";
+    }
+
 	glutKeyboardFunc(keyboard);
 	glutMainLoop();
 
