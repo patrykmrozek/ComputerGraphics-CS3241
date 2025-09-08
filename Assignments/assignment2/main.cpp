@@ -209,7 +209,7 @@ void createSolarSystem() {
 void updateCamera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    float camera_dist = g_bodies[current_focus_index].size * 50;
+    float camera_dist = g_bodies[current_focus_index].size * 10;
     if (camera_dist < 10.0f) camera_dist = 10.0f;
     if (camera_dist > 50.0f) camera_dist = 50.0f;
     if (camera_mode == 0) {
@@ -241,9 +241,11 @@ void renderText() {
     glPushMatrix();
     glLoadIdentity();
 
+    const char* curr_planet_tag = g_bodies[current_focus_index].tag.c_str(); //convert std::string to c_str()
+
     glDisable(GL_DEPTH_TEST);
     glColor3f(1.0, 1.0, 1.0);
-    renderBitmapString(50.0f, 50.0f, GLUT_BITMAP_HELVETICA_10, "TEST");
+    renderBitmapString(50.0f, 50.0f, GLUT_BITMAP_HELVETICA_18, curr_planet_tag);
     glEnable(GL_DEPTH_TEST);
 
     glPopMatrix();
