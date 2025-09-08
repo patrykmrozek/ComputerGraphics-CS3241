@@ -5,11 +5,8 @@
 #include <iostream>
 #include <thread> // Required for std::this_thread::sleep_for
 #include <chrono> // Required for std::chrono::milliseconds
-#include <vector>
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
-
-#define MAX_BODIES 100
 
 int g_body_count = 0; //global bodies counter
 
@@ -28,7 +25,10 @@ typedef struct Body {
     int depth;
 } Body;
 
-std::vector<Body> g_bodies;;
+
+#define MAX_BODIES 100
+Body g_bodies[MAX_BODIES];
+
 
 void drawSphere(double r) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -91,8 +91,14 @@ Body createBody(Vec3 pos, Vec3 color, float size, float r_speed,
 }
 
 void updateBody(Body* body) {
-    //TODO
-    return;
+    if (body->anchor != nullptr) { //if its not at depth 0 (not orbting)
+        body->o_angle += body->o_speed;
+
+        //new pos based on anchor + orbit
+        body->pos.x = body->anchor->pos.x + body->o_rad * cos(body->o_angle);
+        body->pos.y = body->anchor->pos.y + body->o_rad * sin(body->o_angle);
+        body->pos.z = body->anchor->pos.z;
+    }
 }
 
 void renderBody(const Body* body) {
@@ -106,31 +112,35 @@ void renderBody(const Body* body) {
     glPopMatrix();
 }
 
-Body createSun(Vec3 pos, Vec3 color, float size, float r_speed) {
-    return createBody(pos, color, size, r_speed, 0.0, 0.0, 0.0, NULL);
+Body* createSun(Vec3 pos, Vec3 color, float size, float r_speed) {
+    g_bodies[g_body_count] = createBody(pos, color, size, r_speed, 0.0, 0.0, 0.0, NULL);
+    return &g_bodies[g_body_count++];
 }
 
-Body createPlanet(Body* sun, Vec3 color, float size, float r_speed,
+Body* createPlanet(Body* sun, Vec3 color, float size, float r_speed,
                   float o_speed, float o_rad) {
     Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
-    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, sun);
+    g_bodies[g_body_count] = createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, sun);
+    return &g_bodies[g_body_count++];
 }
 
-Body createMoon(Body* planet, Vec3 color, float size, float r_speed,
+Body* createMoon(Body* planet, Vec3 color, float size, float r_speed,
                 float o_speed, float o_rad) {
     Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
-    return createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, planet);
+    g_bodies[g_body_count] = createBody(pos, color, size, r_speed, o_speed, o_rad, 0.0, planet);
+    return &g_bodies[g_body_count++];
 }
 
 void createSolarSystem() {
     Vec3 sun_pos = (Vec3){0.0, 0.0, 0.0};
     Vec3 sun_color = (Vec3){1.0, 1.0, 0.0};
-    Body sun = createSun(sun_pos, sun_color, 1.0, 1.0);
-    g_bodies.push_back(sun);
+    Body* sun = createSun(sun_pos, sun_color, 1.0, 1.0);
 
     Vec3 p1_color = (Vec3){0.0, 0.0, 1.0};
-    Body p1 = createPlanet(&sun, p1_color, 0.5, 1.0, 1.0, 1.5*(sun.size));
-    g_bodies.push_back(p1);
+    Body* p1 = createPlanet(&g_bodies[0], p1_color, 0.5, 1.0, 0.01, 1.7);
+
+    Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
+    Body* m1 = createMoon(&g_bodies[1], m1_color, 0.2, 1.0, 0.02, 1.9);
 }
 
 
@@ -170,7 +180,7 @@ void display(void)
 
     glTranslatef(tx, ty, 0);
 
-    for (int i = 0; i < g_bodies.size(); i++) {
+    for (int i = 0; i < g_body_count; i++) {
         renderBody(&g_bodies[i]);
     }
 
@@ -183,9 +193,12 @@ void idle() {
     alpha += 0.2;
     ty = sin(alpha * 0.005);
     tx = cos(alpha * 0.01);
-    glutPostRedisplay();
 */
-    return;
+    for (int i = 0; i < g_body_count; i++) {
+        updateBody(&g_bodies[i]);
+    }
+
+    glutPostRedisplay();
 }
 
 void keyboard (unsigned char key, int x, int y)
