@@ -9,6 +9,7 @@
 #include <GLUT/GLUT.h>
 
 int g_body_count = 0; //global bodies counter
+int camera_mode = 0; //0=default, 1=top-down
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
@@ -209,9 +210,15 @@ void reshape(int w, int h) {
     gluPerspective(60.0, (double)w/h, 0.1, SUN_RADIUS*20);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
-              0.0, 0.0, 0.0,  // look at center
-              0.0, 1.0, 0.0); // up vector
+    if (camera_mode == 0) {
+        gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
+                0.0, 0.0, 0.0,  // look at center
+                0.0, 1.0, 0.0); // up vector
+    } else {
+        gluLookAt(0.0, SUN_RADIUS*10, 0.0,
+                  0.0, 0.0, 0.0,
+                  0.0, 0.0, 1.0);
+    }
 }
 
 void init(void) {
@@ -280,6 +287,12 @@ void keyboard (unsigned char key, int x, int y)
 				cout << "Current Mode: Solar mode." << endl;
 			break;
 */
+        case 'L':
+        case 'l':
+            camera_mode = (camera_mode+1)%2; //switches between 0 and 1
+            reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+            glutPostRedisplay();
+            break;
         case 'a':
             alpha+=10;
             glutPostRedisplay();
