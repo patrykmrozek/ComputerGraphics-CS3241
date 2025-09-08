@@ -11,9 +11,14 @@
 int g_body_count = 0; //global bodies counter
 int camera_mode = 0; //0=default, 1=top-down
 
+
+typedef struct {
+    float x, y, z;
+} Vec3;
+
+Vec3 current_focus = {0.0, 0.0, 0.0};
+
 GLfloat GPI = (GLfloat)M_PI;
-float alpha = 0.0, k=1.0;
-float tx = 0.0, ty=0.0;
 
 
 //planets size relative to earth
@@ -50,12 +55,6 @@ float tx = 0.0, ty=0.0;
 #define URANUS_SPEED EARTH_SPEED * 0.23
 #define NEPTUNE_SPEED EARTH_SPEED * 0.18
 
-
-typedef struct {
-    float x, y, z;
-} Vec3;
-
-
 //colors
 #define MERCURY_COLOR (Vec3){1.0, 0.8, 0.0}
 #define VENUS_COLOR (Vec3){1.0, 0.4, 0.1}
@@ -72,10 +71,11 @@ typedef struct Body {
     float size, o_speed, o_rad, o_angle; //orbiting_xxx
     struct Body* anchor;
     int depth;
+    std::string tag;
 } Body;
 
 
-#define MAX_BODIES 100
+#define MAX_BODIES 20
 Body g_bodies[MAX_BODIES];
 
 
@@ -120,7 +120,7 @@ void drawSphere(double r) {
 
 
 Body createBody(Vec3 pos, Vec3 color, float size, float o_speed,
-                float o_rad, float o_angle, Body* anchor) {
+                float o_rad, float o_angle, Body* anchor, std::string tag) {
 
     Body body = {
         .pos = pos,
@@ -130,7 +130,8 @@ Body createBody(Vec3 pos, Vec3 color, float size, float o_speed,
         .o_rad = o_rad,
         .o_angle = o_angle,
         .anchor = anchor,
-        .depth = (anchor==nullptr) ? 0 : anchor->depth + 1
+        .depth = (anchor==nullptr) ? 0 : anchor->depth + 1,
+        .tag = tag
     };
 
     g_body_count++;
@@ -161,39 +162,39 @@ void renderBody(const Body* body) {
 }
 
 //wrapper functions
-Body* createSun(Vec3 pos, Vec3 color, float size) {
-    g_bodies[g_body_count] = createBody(pos, color, size, 0.0, 0.0, 0.0, NULL);
+Body* createSun(Vec3 pos, Vec3 color, float size, std::string tag) {
+    g_bodies[g_body_count] = createBody(pos, color, size, 0.0, 0.0, 0.0, NULL, tag);
     return &g_bodies[g_body_count++];
 }
 
 Body* createPlanet(Body* sun, Vec3 color, float size,
-                  float o_speed, float o_rad) {
+                  float o_speed, float o_rad, std::string tag) {
     Vec3 pos = {sun->pos.x + o_rad, sun->pos.y, sun->pos.z};
-    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, sun);
+    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, sun, tag);
     return &g_bodies[g_body_count++];
 }
 
 Body* createMoon(Body* planet, Vec3 color, float size,
-                float o_speed, float o_rad) {
+                float o_speed, float o_rad, std::string tag) {
     Vec3 pos = {planet->pos.x + o_rad, planet->pos.y, planet->pos.z};
-    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, planet);
+    g_bodies[g_body_count] = createBody(pos, color, size, o_speed, o_rad, 0.0, planet, tag);
     return &g_bodies[g_body_count++];
 }
 
 void createSolarSystem() {
     Vec3 sun_pos = (Vec3){0.0, 0.0, 0.0};
     Vec3 sun_color = (Vec3){1.0, 1.0, 0.0};
-    Body* sun = createSun(sun_pos, sun_color, SUN_RADIUS);
+    Body* sun = createSun(sun_pos, sun_color, SUN_RADIUS, "sun");
 
     //mercury - venus - earth - mars - jupiter - saturn - uranus - neptune
-    Body* mercury = createPlanet(sun, MERCURY_COLOR, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST);
-    Body* venus = createPlanet(sun, VENUS_COLOR, VENUS_RADIUS, VENUS_SPEED, VENUS_DIST);
-    Body* earth = createPlanet(sun, EARTH_COLOR, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST);
-    Body* mars = createPlanet(sun, MARS_COLOR, MARS_RADIUS, MARS_SPEED, MARS_DIST);
-    Body* jupiter = createPlanet(sun, JUPITER_COLOR, JUPITER_RADIUS, JUPITER_SPEED, JUPITER_DIST);
-    Body* saturn = createPlanet(sun, SATURN_COLOR, SATURN_RADIUS, SATURN_SPEED, SATURN_DIST);
-    Body* uranus = createPlanet(sun, URANUS_COLOR, URANUS_RADIUS, URANUS_SPEED, URANUS_DIST);
-    Body* neptune = createPlanet(sun, NEPTUNE_COLOR, NEPTUNE_RADIUS, NEPTUNE_SPEED, NEPTUNE_DIST);
+    Body* mercury = createPlanet(sun, MERCURY_COLOR, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST, "mercury");
+    Body* venus = createPlanet(sun, VENUS_COLOR, VENUS_RADIUS, VENUS_SPEED, VENUS_DIST, "venus");
+    Body* earth = createPlanet(sun, EARTH_COLOR, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST, "earth");
+    Body* mars = createPlanet(sun, MARS_COLOR, MARS_RADIUS, MARS_SPEED, MARS_DIST, "mars");
+    Body* jupiter = createPlanet(sun, JUPITER_COLOR, JUPITER_RADIUS, JUPITER_SPEED, JUPITER_DIST, "jupiter");
+    Body* saturn = createPlanet(sun, SATURN_COLOR, SATURN_RADIUS, SATURN_SPEED, SATURN_DIST, "saturn");
+    Body* uranus = createPlanet(sun, URANUS_COLOR, URANUS_RADIUS, URANUS_SPEED, URANUS_DIST, "uranus");
+    Body* neptune = createPlanet(sun, NEPTUNE_COLOR, NEPTUNE_RADIUS, NEPTUNE_SPEED, NEPTUNE_DIST, "neptune");
 
 
     /*
@@ -212,11 +213,11 @@ void reshape(int w, int h) {
     glLoadIdentity();
     if (camera_mode == 0) {
         gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
-                0.0, 0.0, 0.0,  // look at center
+                current_focus.x, current_focus.y, current_focus.z,  // look at center
                 0.0, 1.0, 0.0); // up vector
     } else {
         gluLookAt(0.0, SUN_RADIUS*10, 0.0,
-                  0.0, 0.0, 0.0,
+                  current_focus.x, current_focus.y, current_focus.z,
                   0.0, 0.0, 1.0);
     }
 }
@@ -240,11 +241,6 @@ void display(void) {
 	
 	glPushMatrix();
 
-	//controls transformation
-	glScalef(k, k, k);	
-    glRotatef(alpha, 0, 0, 1);
-
-    //glTranslatef(tx, ty, 0);
 
     for (int i = 0; i < g_body_count; i++) {
         renderBody(&g_bodies[i]);
@@ -291,46 +287,6 @@ void keyboard (unsigned char key, int x, int y)
         case 'l':
             camera_mode = (camera_mode+1)%2; //switches between 0 and 1
             reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
-            glutPostRedisplay();
-            break;
-        case 'a':
-            alpha+=10;
-            glutPostRedisplay();
-            break;
-
-        case 'd':
-            alpha-=10;
-            glutPostRedisplay();
-            break;
-
-        case 'q':
-            k+=0.1;
-            glutPostRedisplay();
-            break;
-
-        case 'e':
-            if(k>0.1)
-                k-=0.1;
-            glutPostRedisplay();
-            break;
-
-        case 'z':
-            tx-=0.1;
-            glutPostRedisplay();
-            break;
-
-        case 'c':
-            tx+=0.1;
-            glutPostRedisplay();
-            break;
-
-        case 's':
-            ty-=0.1;
-            glutPostRedisplay();
-            break;
-
-        case 'w':
-            ty+=0.1;
             glutPostRedisplay();
             break;
 
