@@ -15,7 +15,7 @@ int g_body_count = 0; //global bodies counter
 
 GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
-float tx = 0.0, ty=3.0;
+float tx = 0.0, ty=0.0;
 
 typedef struct {
     float x, y, z;
@@ -127,6 +127,10 @@ void createSolarSystem() {
     Vec3 sun_color = (Vec3){1.0, 1.0, 0.0};
     Body sun = createSun(sun_pos, sun_color, 1.0, 1.0);
     g_bodies.push_back(sun);
+
+    Vec3 p1_color = (Vec3){0.0, 0.0, 1.0};
+    Body p1 = createPlanet(&sun, p1_color, 0.5, 1.0, 1.0, 1.5*(sun.size));
+    g_bodies.push_back(p1);
 }
 
 
@@ -138,7 +142,7 @@ void reshape(int w, int h) {
     gluPerspective(60.0, (double)w/h, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(tx, ty, 5.0,  // eye position
+    gluLookAt(0.0, 0.0, 5.0,  // eye position
               0.0, 0.0, 0.0,  // look at center
               0.0, 1.0, 0.0); // up vector
 }
@@ -175,10 +179,13 @@ void display(void)
 }
 
 void idle() {
+    /*
     alpha += 0.2;
     ty = sin(alpha * 0.005);
     tx = cos(alpha * 0.01);
     glutPostRedisplay();
+*/
+    return;
 }
 
 void keyboard (unsigned char key, int x, int y)
