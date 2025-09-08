@@ -14,9 +14,10 @@ GLfloat GPI = (GLfloat)M_PI;
 float alpha = 0.0, k=1.0;
 float tx = 0.0, ty=0.0;
 
-#define EARTH_RADIUS 0.1
 
 //planets size relative to earth
+#define EARTH_RADIUS 0.1
+
 #define MERCURY_RADIUS EARTH_RADIUS * 0.38
 #define VENUS_RADIUS EARTH_RADIUS * 0.95
 #define MARS_RADIUS EARTH_RADIUS * 0.53
@@ -24,10 +25,10 @@ float tx = 0.0, ty=0.0;
 #define SATURN_RADIUS EARTH_RADIUS * 9.14
 #define URANUS_RADIUS EARTH_RADIUS * 4.01
 #define NEPTUNE_RADIUS EARTH_RADIUS * 3.88
-#define SUN_RADIUS EARTH_RADIUS * 20.0 //scaled down by approx 0.2
+#define SUN_RADIUS EARTH_RADIUS * 50.0 //scaled down by approx half
 
 //planets distances from sun relative to earth
-#define EARTH_DIST 5.0
+#define EARTH_DIST 10.0
 
 #define MERCURY_DIST EARTH_DIST * 0.67
 #define VENUS_DIST EARTH_DIST * 0.83
@@ -39,6 +40,7 @@ float tx = 0.0, ty=0.0;
 
 //orbiting speed for each planet
 #define EARTH_SPEED 0.01
+
 #define MERCURY_SPEED EARTH_SPEED * 1.59
 #define VENUS_SPEED EARTH_SPEED * 1.18
 #define MARS_SPEED EARTH_SPEED * 0.81
@@ -47,9 +49,22 @@ float tx = 0.0, ty=0.0;
 #define URANUS_SPEED EARTH_SPEED * 0.23
 #define NEPTUNE_SPEED EARTH_SPEED * 0.18
 
+
 typedef struct {
     float x, y, z;
 } Vec3;
+
+
+//colors
+#define MERCURY_COLOR (Vec3){1.0, 0.8, 0.0}
+#define VENUS_COLOR (Vec3){1.0, 0.4, 0.1}
+#define EARTH_COLOR (Vec3){0.2, 0.2, 1.0}
+#define MARS_COLOR (Vec3){1.0, 0.1, 0.0}
+#define JUPITER_COLOR (Vec3){0.6, 0.5, 0.0}
+#define SATURN_COLOR (Vec3){0.8, 0.7, 0.0}
+#define URANUS_COLOR (Vec3){0.3, 0.5, 1.0}
+#define NEPTUNE_COLOR (Vec3){0.0, 0.0, 1.0}
+
 
 typedef struct Body {
     Vec3 pos, color;
@@ -170,11 +185,15 @@ void createSolarSystem() {
     Body* sun = createSun(sun_pos, sun_color, SUN_RADIUS);
 
     //mercury - venus - earth - mars - jupiter - saturn - uranus - neptune
-    Vec3 mercury_color = (Vec3){1.0, 1.0, 1.0};
-    Body* mercury = createPlanet(sun, mercury_color, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST);
+    Body* mercury = createPlanet(sun, MERCURY_COLOR, MERCURY_RADIUS, MERCURY_SPEED, MERCURY_DIST);
+    Body* venus = createPlanet(sun, VENUS_COLOR, VENUS_RADIUS, VENUS_SPEED, VENUS_DIST);
+    Body* earth = createPlanet(sun, EARTH_COLOR, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST);
+    Body* mars = createPlanet(sun, MARS_COLOR, MARS_RADIUS, MARS_SPEED, MARS_DIST);
+    Body* jupiter = createPlanet(sun, JUPITER_COLOR, JUPITER_RADIUS, JUPITER_SPEED, JUPITER_DIST);
+    Body* saturn = createPlanet(sun, SATURN_COLOR, SATURN_RADIUS, SATURN_SPEED, SATURN_DIST);
+    Body* uranus = createPlanet(sun, URANUS_COLOR, URANUS_RADIUS, URANUS_SPEED, URANUS_DIST);
+    Body* neptune = createPlanet(sun, NEPTUNE_COLOR, NEPTUNE_RADIUS, NEPTUNE_SPEED, NEPTUNE_DIST);
 
-    Vec3 earth_color = (Vec3){0.0, 0.0, 1.0};
-    Body* earth = createPlanet(sun, earth_color, EARTH_RADIUS, EARTH_SPEED, EARTH_DIST);
 
     /*
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
@@ -190,7 +209,7 @@ void reshape(int w, int h) {
     gluPerspective(60.0, (double)w/h, 0.1, SUN_RADIUS*20);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(3.0, 3.0, SUN_RADIUS*5,  // eye position
+    gluLookAt(0.0, 0.0, SUN_RADIUS*10,  // eye position
               0.0, 0.0, 0.0,  // look at center
               0.0, 1.0, 0.0); // up vector
 }
