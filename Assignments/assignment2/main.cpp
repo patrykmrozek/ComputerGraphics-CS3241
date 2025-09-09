@@ -63,7 +63,7 @@ typedef struct {
 #define NEPTUNE_COLOR (Vec3){0.0, 0.0, 1.0}
 
 
-#define MAX_BODIES 20
+#define MAX_BODIES 15
 
 typedef struct Body {
     Vec3 pos, color;
@@ -75,7 +75,6 @@ typedef struct Body {
 } Body;
 
 
-
 int g_body_count = 0; //global bodies counter
 int camera_mode = 0; //0=default, 1=top-down
 
@@ -83,7 +82,16 @@ Body g_bodies[MAX_BODIES];
 
 int current_focus_index = 0;
 Vec3 current_focus;
-float k = 1.0;
+float zoom_factor = 1.0;
+
+bool wireframe_mode = false;
+
+bool clock_mode = false;
+time_t seconds = 0;
+struct tm* timeinfo;
+float timer = 0.1;
+
+
 
 void drawCircle(float radius) {
     std::vector<Vec3> vertices;
@@ -114,41 +122,36 @@ void drawCircle(float radius) {
     glEnd();
 }
 
-void drawSphere(double r) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+void drawSphere(double r){
     //x = (r*sin(Phi)*cos(Theta))
     //y = (r*sin(Phi)*sin(Theta))
     //z = (r*cos(Phi))
     int n = 20;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 2*n; j++) {
-            //i, j, i, j TL
-            float phi1 = i*M_PI/n;
-            //i, j+1, i, j+1 BL
+            float phi1 = (i*M_PI)/n;
             float theta1 = j*M_PI/n;
-            //i+1, j+1, i+1, j+1 BR
             float theta2 = (j+1)*M_PI/n;
-            //i+1, j, i+1, j TR
             float phi2 = (i+1)*M_PI/n;
             glBegin(GL_QUADS);
-
             glVertex3f(r*sin(phi1)*cos(theta1),
-                       r*sin(phi1)*sin(theta1),
-                       r*cos(phi1));
+                       r*cos(phi1),
+                       r*sin(phi1)*sin(theta1));
 
             glVertex3f(r*sin(phi1)*cos(theta2),
-                       r*sin(phi1)*sin(theta2),
-                       r*cos(phi1));
+                       r*cos(phi1),
+                       r*sin(phi1)*sin(theta2));
 
             glVertex3f(r*sin(phi2)*cos(theta2),
-                       r*sin(phi2)*sin(theta2),
-                       r*cos(phi2));
+                       r*cos(phi2),
+                       r*sin(phi2)*sin(theta2));
 
             glVertex3f(r*sin(phi2)*cos(theta1),
-                       r*sin(phi2)*sin(theta1),
-                       r*cos(phi2));
+                       r*cos(phi2),
+                       r*sin(phi2)*sin(theta1));
 
             glEnd();
+
         }
     }
 }
@@ -197,6 +200,7 @@ void renderBody(const Body* body) {
         glPushMatrix();
         glRotatef(90.0, 1.0, 0.0, 0.0);
         drawCircle(body->radius*2);
+        glPopMatrix();
     }
 
     glPopMatrix();
@@ -246,12 +250,18 @@ void createSolarSystem() {
 void updateCamera() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    float camera_dist = g_bodies[current_focus_index].radius * 10 * k;
+    float camera_dist = g_bodies[current_focus_index].radius * 10 * zoom_factor;
     float min_dist = g_bodies[current_focus_index].radius*2;
+    float max_dist = (100/min_dist) * g_bodies[current_focus_index].radius;
     if (camera_dist < min_dist) camera_dist = min_dist;
-    if (camera_dist > min_dist*(100/min_dist)) camera_dist = min_dist*(100/min_dist);
+    if (camera_dist > max_dist) camera_dist = max_dist;
+
+
+    std::cout << "Camera Dist " << current_focus_index << ": " << camera_dist << "\n";
+    std::cout << "Max dist: " << max_dist << " - ";
+
     if (camera_mode == 0) {
-        gluLookAt( current_focus.x, current_focus.y, current_focus.z+camera_dist,  // eye position
+        gluLookAt( current_focus.x, current_focus.y, current_focus.z + camera_dist,  // eye position
                   current_focus.x, current_focus.y, current_focus.z,  // look at center
                   0.0, 1.0, 0.0); // up vector
     } else {
@@ -284,6 +294,22 @@ void renderText() {
     glDisable(GL_DEPTH_TEST);
     glColor3f(1.0, 1.0, 1.0);
     renderBitmapString(50.0f, 50.0f, GLUT_BITMAP_HELVETICA_18, curr_planet_tag);
+
+    const char* clock_mode_tag;
+    if (clock_mode) {
+        glColor3f(0.0, 1.0, 0.0);
+        clock_mode_tag = "clock mode: on";
+    } else {
+        glColor3f(1.0, 0.0, 0.0);
+        clock_mode_tag = "clock mode: off";
+    }
+
+    renderBitmapString(
+        glutGet(GLUT_WINDOW_WIDTH)-200.0f,
+        50.0f,
+        GLUT_BITMAP_HELVETICA_18,
+        clock_mode_tag);
+
     glEnable(GL_DEPTH_TEST);
 
     glPopMatrix();
@@ -318,6 +344,12 @@ void init(void) {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    if (!wireframe_mode) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
     updateCamera();
     glPushMatrix();
 
@@ -336,12 +368,26 @@ void idle() {
     ty = sin(alpha * 0.005);
     tx = cos(alpha * 0.01);
 */
-    for (int i = 0; i < g_body_count; i++) {
-        updateBody(&g_bodies[i]);
-    }
 
-    if (current_focus_index < g_body_count) {
-        current_focus = g_bodies[current_focus_index].pos;
+    if (!clock_mode) {
+        for (int i = 0; i < g_body_count; i++) {
+            updateBody(&g_bodies[i]);
+        }
+
+        if (current_focus_index < g_body_count) {
+            current_focus = g_bodies[current_focus_index].pos;
+        }
+    } else {
+        seconds = time(NULL);
+        timeinfo = localtime(&seconds);
+
+        for (int i = 0; i < g_body_count; i++) {
+            updateBody(&g_bodies[i]);
+        }
+        if (current_focus_index < g_body_count) {
+            current_focus = g_bodies[current_focus_index].pos;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     glutPostRedisplay();
@@ -375,29 +421,36 @@ void keyboard (unsigned char key, int x, int y)
             break;
 
         case 'e':
-            if(k>0.1)
-                k-=0.1;
+            if(zoom_factor>0.1) {
+                zoom_factor-=0.1;
+            }
             glutPostRedisplay();
             break;
 
         case 'r':
-            k+=0.1;
+            if (zoom_factor < 100.0) {
+                zoom_factor+=0.1;
+            }
             glutPostRedisplay();
             break;
 
-    /*
 		case 't':
-			clockMode = !clockMode;
-			if (clockMode)
-				cout << "Current Mode: Clock mode." << endl;
+            clock_mode = !clock_mode;
+            if (clock_mode)
+                std::cout << "Current Mode: Clock mode." << "\n";
 			else
-				cout << "Current Mode: Solar mode." << endl;
-			break;
-*/
+                std::cout << "Current Mode: Solar mode." << "\n";
+            break;
+
         case 'L':
         case 'l':
             camera_mode = (camera_mode+1)%2; //switches between 0 and 1
             reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+            glutPostRedisplay();
+            break;
+        case 'f':
+        case 'F':
+            wireframe_mode = !wireframe_mode;
             glutPostRedisplay();
             break;
 
