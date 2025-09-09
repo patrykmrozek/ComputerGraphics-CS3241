@@ -1,4 +1,7 @@
-// CS3241Lab1.cpp : Defines the entry point for the console application.
+///////////////////////////////////
+/// Name: Patryk Mrozek		   ///
+/////////////////////////////////
+
 #include <cmath>
 #include <iostream>
 #include <time.h>
@@ -25,12 +28,14 @@
 #define NEPTUNE_RADIUS EARTH_RADIUS * 3.88
 #define SUN_RADIUS EARTH_RADIUS * 50.0 //scaled down by approx half
 //moons
-#define MOON_RADIUS EARTH_RADIUS * 0.27
+#define MOON_RADIUS EARTH_RADIUS * 0.20
 #define IO_RADIUS EARTH_RADIUS * 0.29
 #define EUROPA_RADIUS EARTH_RADIUS * 0.25
 #define GANYMEDE_RADIUS EARTH_RADIUS * 0.41
 #define CALLISTO_RADIUS EARTH_RADIUS * 0.38
 #define TITAN_RADIUS EARTH_RADIUS * 0.40
+
+#define CLOCK_RADIUS 30.0
 
 //planets distances from sun relative to earth
 #define EARTH_DIST 10.0
@@ -39,16 +44,16 @@
 #define VENUS_DIST EARTH_DIST * 0.83
 #define MARS_DIST EARTH_DIST * 1.17
 #define JUPITER_DIST EARTH_DIST * 1.56
-#define SATURN_DIST EARTH_DIST * 1.94
-#define URANUS_DIST EARTH_DIST * 2.33
-#define NEPTUNE_DIST EARTH_DIST * 2.78
+#define SATURN_DIST EARTH_DIST * 2.20
+#define URANUS_DIST EARTH_DIST * 2.60
+#define NEPTUNE_DIST EARTH_DIST * 2.88
 //moons
-#define MOON_DIST EARTH_RADIUS * 5
-#define IO_DIST JUPITER_RADIUS * 2
-#define EUROPA_DIST JUPITER_RADIUS * 2.5
-#define GANYMEDE_DIST JUPITER_RADIUS * 3
-#define CALLISTO_DIST JUPITER_RADIUS * 3.5
-#define TITAN_DIST SATURN_RADIUS * 3
+#define MOON_DIST EARTH_RADIUS * 3
+#define IO_DIST JUPITER_RADIUS * 1.7
+#define EUROPA_DIST JUPITER_RADIUS * 2.2
+#define GANYMEDE_DIST JUPITER_RADIUS * 2.6
+#define CALLISTO_DIST JUPITER_RADIUS * 3
+#define TITAN_DIST SATURN_RADIUS * 3.2
 
 //orbiting speed
 #define EARTH_SPEED 0.01
@@ -91,6 +96,8 @@ typedef struct {
 #define CALLISTO_COLOR (Vec3){0.4, 0.4, 0.4}
 #define TITAN_COLOR (Vec3){0.9, 0.7, 0.4}
 
+#define BG_COLOR (Vec3){0.0, 0.0, 0.1}
+
 #define MAX_BODIES 25
 
 typedef struct Body {
@@ -104,7 +111,7 @@ typedef struct Body {
 
 
 int g_body_count = 0; //global bodies counter
-int camera_mode = 0; //0=default, 1=top-down
+bool camera_mode = false; //false/0=default, true/1=top-down
 
 Body g_bodies[MAX_BODIES];
 
@@ -118,6 +125,7 @@ bool clock_mode = false;
 time_t seconds = 0;
 struct tm* timeinfo;
 float timer = 0.1;
+float clock_angle = 0.0;
 
 
 
@@ -143,8 +151,8 @@ void drawCircle(float radius) {
 
 
     glBegin(GL_POLYGON);
-    for (Vec3 vertex : vertices) {
-        glVertex2f(vertex.x, vertex.y);
+    for (int i = 0; i < vertices.size(); i++) {
+        glVertex2f(vertices[i].x, vertices[i].y);
         //std::cout << vertex.x << " - " << vertex.y << "\n";
     }
     glEnd();
@@ -233,6 +241,31 @@ void renderBody(const Body* body) {
 
     glPopMatrix();
 }
+
+void renderClock() {
+    glPushMatrix();
+    glColor3f(1.0, 1.0, 1.0);
+    glTranslatef(
+        glutGet(GLUT_WINDOW_WIDTH)-135.0,
+        100.0,
+        0.0);
+    drawCircle(CLOCK_RADIUS);
+    glColor3f(BG_COLOR.x, BG_COLOR.y, BG_COLOR.z);
+    drawCircle(CLOCK_RADIUS-3.0);
+
+    glPushMatrix();
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(CLOCK_RADIUS*cos(DEG_TO_RAD(-clock_angle)*0.8), //-clock_angle for clockwise
+               CLOCK_RADIUS*sin(DEG_TO_RAD(-clock_angle)*0.8),
+               0.0);
+    glEnd();
+    glPopMatrix();
+
+    glPopMatrix();
+}
+
 //wrapper functions
 Body* createSun(Vec3 pos, Vec3 color, float radius, std::string tag) {
     g_bodies[g_body_count] = createBody(pos, color, radius, 0.0, 0.0, 0.0, NULL, tag, false);
@@ -276,11 +309,6 @@ void createSolarSystem() {
     Body* callisto = createMoon(jupiter, CALLISTO_COLOR, CALLISTO_RADIUS, CALLISTO_SPEED, CALLISTO_DIST, "callisto", false);
     Body* titan = createMoon(saturn, TITAN_COLOR, TITAN_RADIUS, TITAN_SPEED, TITAN_DIST, "titan", false);
 
-
-    /*
-    Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
-    Body* m1 = createMoon(earth, m1_color, 0.2, 0.1, 1.5);
-*/
 }
 
 void updateCamera() {
@@ -293,8 +321,8 @@ void updateCamera() {
     if (camera_dist > max_dist) camera_dist = max_dist;
 
 
-    std::cout << "Camera Dist " << current_focus_index << ": " << camera_dist << "\n";
-    std::cout << "Max dist: " << max_dist << " - ";
+    //std::cout << "Camera Dist " << current_focus_index << ": " << camera_dist << "\n";
+    //std::cout << "Max dist: " << max_dist << " - ";
 
     if (camera_mode == 0) {
         gluLookAt( current_focus.x, current_focus.y, current_focus.z + camera_dist,  // eye position
@@ -314,7 +342,7 @@ void renderBitmapString(float x, float y, void* font, const char *string) {
     }
 }
 
-void renderText() {
+void renderUI() {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -325,16 +353,34 @@ void renderText() {
     glPushMatrix();
     glLoadIdentity();
 
-    const char* curr_planet_tag = g_bodies[current_focus_index].tag.c_str(); //convert std::string to c_str()
-
     glDisable(GL_DEPTH_TEST);
+
+    const char* curr_planet_tag = g_bodies[current_focus_index].tag.c_str(); //convert std::string to c_str()
     glColor3f(1.0, 1.0, 1.0);
-    renderBitmapString(50.0f, 50.0f, GLUT_BITMAP_HELVETICA_18, curr_planet_tag);
+    renderBitmapString(
+        glutGet(GLUT_WINDOW_WIDTH)/2,
+        glutGet(GLUT_WINDOW_HEIGHT)-50.0,
+        GLUT_BITMAP_HELVETICA_18,
+        curr_planet_tag);
+
+    const char* curr_view_tag;
+    if (!camera_mode) {
+        curr_view_tag = "default view";
+    } else {
+        curr_view_tag = "top down view";
+    }
+    glColor3f(3.0, 0.0, 1.0);
+    renderBitmapString(
+        50.0f,
+        50.0f,
+        GLUT_BITMAP_HELVETICA_18,
+        curr_view_tag);
 
     const char* clock_mode_tag;
     if (clock_mode) {
-        glColor3f(0.0, 1.0, 0.0);
         clock_mode_tag = "clock mode: on";
+        renderClock();
+        glColor3f(0.0, 1.0, 0.0);
     } else {
         glColor3f(1.0, 0.0, 0.0);
         clock_mode_tag = "clock mode: off";
@@ -345,6 +391,8 @@ void renderText() {
         50.0f,
         GLUT_BITMAP_HELVETICA_18,
         clock_mode_tag);
+
+
 
     glEnable(GL_DEPTH_TEST);
 
@@ -365,7 +413,7 @@ void reshape(int w, int h) {
 }
 
 void init(void) {
-    glClearColor (0.0, 0.0, 0.1, 1.0);
+    glClearColor (BG_COLOR.x, BG_COLOR.y, BG_COLOR.z, 1.0);
 	glShadeModel (GL_SMOOTH);
 	glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -394,7 +442,7 @@ void display(void) {
     }
     glPopMatrix();
 
-    renderText();
+    renderUI();
     glFlush ();
 }
 
@@ -423,7 +471,9 @@ void idle() {
         if (current_focus_index < g_body_count) {
             current_focus = g_bodies[current_focus_index].pos;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        clock_angle++;
     }
 
     glutPostRedisplay();
@@ -448,7 +498,6 @@ void keyboard (unsigned char key, int x, int y)
         case '6':
         case '7':
         case '8':
-        case '9':
             current_focus_index = key - '0'; // - '0' converts to ASCII
             if (current_focus_index < g_body_count) {
                 current_focus = g_bodies[current_focus_index].pos;
@@ -473,15 +522,10 @@ void keyboard (unsigned char key, int x, int y)
 
 		case 't':
             clock_mode = !clock_mode;
-            if (clock_mode)
-                std::cout << "Current Mode: Clock mode." << "\n";
-			else
-                std::cout << "Current Mode: Solar mode." << "\n";
             break;
-
         case 'L':
         case 'l':
-            camera_mode = (camera_mode+1)%2; //switches between 0 and 1
+            camera_mode = !camera_mode; //switches between 0 and 1
             reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
             glutPostRedisplay();
             break;
@@ -498,11 +542,14 @@ void keyboard (unsigned char key, int x, int y)
 
 int main(int argc, char **argv)
 {
-    std::cout<<"CS3241 Lab 2\n\n";
     std::cout<<"+++++CONTROL BUTTONS+++++++\n\n";
     std::cout<<"Toggle Time Mode: T\n";
     std::cout<<"Exit: ESC or q/Q\n";
-    std::cout << "Current Mode: Clock mode." << "\n";
+    std::cout<<"Switch between planet views (1-8)\n";
+    std::cout<<"Switch view to the sun (0)\n";
+    std::cout<<"Zoom in: E - Zoom out: R\n";
+    std::cout<<"Toggle top-down view: L\n";
+    std::cout<<"Toggle wireframe mode: F\n";
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
