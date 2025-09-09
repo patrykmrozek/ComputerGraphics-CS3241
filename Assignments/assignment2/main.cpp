@@ -15,7 +15,7 @@
 
 //planets radius relative to earth
 #define EARTH_RADIUS 0.1
-
+//planets
 #define MERCURY_RADIUS EARTH_RADIUS * 0.38
 #define VENUS_RADIUS EARTH_RADIUS * 0.95
 #define MARS_RADIUS EARTH_RADIUS * 0.53
@@ -24,10 +24,17 @@
 #define URANUS_RADIUS EARTH_RADIUS * 4.01
 #define NEPTUNE_RADIUS EARTH_RADIUS * 3.88
 #define SUN_RADIUS EARTH_RADIUS * 50.0 //scaled down by approx half
+//moons
+#define MOON_RADIUS EARTH_RADIUS * 0.27
+#define IO_RADIUS EARTH_RADIUS * 0.29
+#define EUROPA_RADIUS EARTH_RADIUS * 0.25
+#define GANYMEDE_RADIUS EARTH_RADIUS * 0.41
+#define CALLISTO_RADIUS EARTH_RADIUS * 0.38
+#define TITAN_RADIUS EARTH_RADIUS * 0.40
 
 //planets distances from sun relative to earth
 #define EARTH_DIST 10.0
-
+//planets
 #define MERCURY_DIST EARTH_DIST * 0.67
 #define VENUS_DIST EARTH_DIST * 0.83
 #define MARS_DIST EARTH_DIST * 1.17
@@ -35,17 +42,31 @@
 #define SATURN_DIST EARTH_DIST * 1.94
 #define URANUS_DIST EARTH_DIST * 2.33
 #define NEPTUNE_DIST EARTH_DIST * 2.78
+//moons
+#define MOON_DIST EARTH_RADIUS * 5
+#define IO_DIST JUPITER_RADIUS * 2
+#define EUROPA_DIST JUPITER_RADIUS * 2.5
+#define GANYMEDE_DIST JUPITER_RADIUS * 3
+#define CALLISTO_DIST JUPITER_RADIUS * 3.5
+#define TITAN_DIST SATURN_RADIUS * 3
 
-//orbiting speed for each planet
+//orbiting speed
 #define EARTH_SPEED 0.01
-
+//planets
 #define MERCURY_SPEED EARTH_SPEED * 1.59
 #define VENUS_SPEED EARTH_SPEED * 1.18
 #define MARS_SPEED EARTH_SPEED * 0.81
 #define JUPITER_SPEED EARTH_SPEED * 0.44
 #define SATURN_SPEED EARTH_SPEED * 0.32
 #define URANUS_SPEED EARTH_SPEED * 0.23
-#define NEPTUNE_SPEED EARTH_SPEED * 0.18
+#define NEPTUNE_SPEED EARTH_SPEED * 0.1
+//moons
+#define MOON_SPEED EARTH_SPEED * 5
+#define IO_SPEED JUPITER_SPEED * 8
+#define EUROPA_SPEED JUPITER_SPEED * 6
+#define GANYMEDE_SPEED JUPITER_SPEED * 4
+#define CALLISTO_SPEED JUPITER_SPEED * 3
+#define TITAN_SPEED SATURN_SPEED * 4
 
 typedef struct {
     float x, y, z;
@@ -53,6 +74,7 @@ typedef struct {
 
 
 //colors
+//planets
 #define MERCURY_COLOR (Vec3){1.0, 0.8, 0.0}
 #define VENUS_COLOR (Vec3){1.0, 0.4, 0.1}
 #define EARTH_COLOR (Vec3){0.2, 0.2, 1.0}
@@ -61,9 +83,15 @@ typedef struct {
 #define SATURN_COLOR (Vec3){0.8, 0.7, 0.0}
 #define URANUS_COLOR (Vec3){0.3, 0.5, 1.0}
 #define NEPTUNE_COLOR (Vec3){0.0, 0.0, 1.0}
+//moons
+#define MOON_COLOR (Vec3){0.8, 0.8, 0.8}
+#define IO_COLOR (Vec3){1.0, 1.0, 0.6}
+#define EUROPA_COLOR (Vec3){0.7, 0.9, 1.0}
+#define GANYMEDE_COLOR (Vec3){0.6, 0.6, 0.8}
+#define CALLISTO_COLOR (Vec3){0.4, 0.4, 0.4}
+#define TITAN_COLOR (Vec3){0.9, 0.7, 0.4}
 
-
-#define MAX_BODIES 15
+#define MAX_BODIES 25
 
 typedef struct Body {
     Vec3 pos, color;
@@ -240,6 +268,14 @@ void createSolarSystem() {
     Body* uranus = createPlanet(sun, URANUS_COLOR, URANUS_RADIUS, URANUS_SPEED, URANUS_DIST, "uranus", false);
     Body* neptune = createPlanet(sun, NEPTUNE_COLOR, NEPTUNE_RADIUS, NEPTUNE_SPEED, NEPTUNE_DIST, "neptune", false);
 
+    //moons
+    Body* moon = createMoon(earth, MOON_COLOR, MOON_RADIUS, MOON_SPEED, MOON_DIST, "moon", false);
+    Body* io = createMoon(jupiter, IO_COLOR, IO_RADIUS, IO_SPEED, IO_DIST, "io", false);
+    Body* europa = createMoon(jupiter, EUROPA_COLOR, EUROPA_RADIUS, EUROPA_SPEED, EUROPA_DIST, "europa", false);
+    Body* ganymede = createMoon(jupiter, GANYMEDE_COLOR, GANYMEDE_RADIUS, GANYMEDE_SPEED, GANYMEDE_DIST, "ganymede", false);
+    Body* callisto = createMoon(jupiter, CALLISTO_COLOR, CALLISTO_RADIUS, CALLISTO_SPEED, CALLISTO_DIST, "callisto", false);
+    Body* titan = createMoon(saturn, TITAN_COLOR, TITAN_RADIUS, TITAN_SPEED, TITAN_DIST, "titan", false);
+
 
     /*
     Vec3 m1_color = (Vec3){0.9, 0.9, 0.9};
@@ -412,6 +448,7 @@ void keyboard (unsigned char key, int x, int y)
         case '6':
         case '7':
         case '8':
+        case '9':
             current_focus_index = key - '0'; // - '0' converts to ASCII
             if (current_focus_index < g_body_count) {
                 current_focus = g_bodies[current_focus_index].pos;
