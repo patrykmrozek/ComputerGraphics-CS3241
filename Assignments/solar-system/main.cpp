@@ -2,6 +2,8 @@
 /// Name: Patryk Mrozek		   ///
 /////////////////////////////////
 
+//run on Mac: g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
+
 #include <cmath>
 #include <iostream>
 #include <time.h>
@@ -257,8 +259,8 @@ void renderClock() {
     glColor3f(1.0, 1.0, 1.0);
     glBegin(GL_LINES);
     glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(CLOCK_RADIUS*cos(DEG_TO_RAD(-clock_angle)*0.8), //-clock_angle for clockwise
-               CLOCK_RADIUS*sin(DEG_TO_RAD(-clock_angle)*0.8),
+    glVertex3f(CLOCK_RADIUS*cos(DEG_TO_RAD(-clock_angle))*0.8, //-clock_angle for clockwise
+               CLOCK_RADIUS*sin(DEG_TO_RAD(-clock_angle))*0.8,
                0.0);
     glEnd();
     glPopMatrix();

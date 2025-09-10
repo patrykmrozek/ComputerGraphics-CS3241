@@ -1,15 +1,38 @@
 # Computer Graphics - CS3241
-
 A collection of OpenGL projects and exercises for Computer Graphics class.
 
+## Solar System Simulation
+An interactive 3D solar system with planetary motion, camera tracking, and multiple viewing modes built using OpenGL and GLUT.
+[![Solar System Demo](https://img.youtube.com/vi/z4otZGtN46M/0.jpg)](https://youtu.be/z4otZGtN46M)
+
+### Features
+- Complete solar system with Sun, 8 planets, and 6 major moons
+- Interactive camera system with planet tracking
+- Hierarchical orbital mechanics
+- Multiple viewing modes (angled and top-down)
+- Wireframe rendering mode
+- Clock mode with visual indicator
+
+### Controls
+- **0-8**: Focus camera on celestial bodies (0=Sun, 1=Mercury, 2=Venus, etc.)
+- **E/R**: Zoom in/out
+- **L**: Toggle between angled and top-down camera views
+- **T**: Toggle clock mode (slowed animation)
+- **F**: Toggle wireframe mode
+- **ESC/Q**: Exit
+
+### Building and Running
+```bash
+g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
+```
+
+---
+
 ## Interactive 3D Sphere
-
 A wireframe sphere renderer with interactive camera controls built using OpenGL and GLUT.
-
 ![Demo](https://raw.githubusercontent.com/patrykmrozek/ComputerGraphics-CS3241/main/media/sphereWireframe.gif)
 
 ### Controls
-
 - **W/S**: Orbit camera up/down
 - **Z/C**: Orbit camera left/right  
 - **A/D**: Rotate sphere
@@ -17,25 +40,22 @@ A wireframe sphere renderer with interactive camera controls built using OpenGL 
 - **ESC**: Exit
 
 ### Building and Running
-
 ```bash
 g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
-./sphere
 ```
+
 ---
+
 ## 2D Skull Drawing (Assignment 1)
-
 Strawhat Pirates Logo made in OpenGL.
-
 ![Skull](https://raw.githubusercontent.com/patrykmrozek/ComputerGraphics-CS3241/main/media/strawhats-ss2.JPG)
-### Features
 
+### Features
 - Display Lists: GPU-optimized rendering with pre-compiled commands
 - Animated Background: Triangle wave color transitions
 - Interactive Controls: Real-time transformation and scaling
 
 ### Controls
-
 - **A/D**: Rotate skull clockwise/counter-clockwise
 - **Q/E**: Scale up/down
 - **W/S**: Move up/down
@@ -45,10 +65,8 @@ Strawhat Pirates Logo made in OpenGL.
 ### Building and Running
 ```bash
 g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
-./main
 ```
 
 ---
-
 
 *CS3241 Computer Graphics coursework*
