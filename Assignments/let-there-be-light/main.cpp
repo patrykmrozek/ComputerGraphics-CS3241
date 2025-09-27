@@ -1,10 +1,12 @@
 // CS3241 Assignment 3: Let there be light
+//////////////////////////////////////////
+/// Patryk Mrozek
+/////////////////////////////////////////
+/// compile on Mac: g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
+
+#include <OpenGL/OpenGL.h>
 #include <cmath>
 #include <iostream>
-
-// To silence deprecation warnings in XCode
-// Uncomment this line as necessary
-// #define GL_SILENCE_DEPRECATION
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -64,7 +66,7 @@ void drawSphere(double r)
     glScalef(r, r, r);
     int i, j;
     int n = 20;
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     for (i = 0; i < 2 * n; i++)
         for (j = 0; j < n; j++)
         {
@@ -81,6 +83,26 @@ void drawSphere(double r)
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (m_Smooth) {
+        glShadeModel(GL_SMOOTH);
+    } else {
+        glShadeModel(GL_FLAT);
+    }
+
+    if (m_Highlight) {
+        GLfloat mat_spec[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        GLfloat mat_shine[] = {100.0f};
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_spec);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shine);
+    } else {
+        GLfloat mat_spec[] = {0.0f, 0.0f, 0.0f, 0.0f};
+        GLfloat mat_shine[] = {0.0f};
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_spec);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shine);
+    }
+
+
     glPushMatrix();
     glTranslatef(0, 0, -6);
 
