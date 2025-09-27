@@ -148,6 +148,35 @@ void drawCylinder(double radius, double height, int sections) {
         glVertex3d(radius*cos(angle), -height/2, radius*sin(angle));
     }
     glEnd();
+
+    for (int i = 0; i < sections; i++) {
+        //calc angles for two consecutive sections
+        double angle1 = 2.0f * M_PI * i / sections;
+        double angle2 = 2.0f * M_PI * (i+1) / sections;
+
+        //points on bottom face, can use height to judge the y coord
+        double x1 = radius * cos(angle1);
+        double z1 = radius * sin(angle1);
+
+        double x2 = radius * cos(angle2);
+        double z2 = radius * sin(angle2);
+
+        glBegin(GL_QUADS);
+        //BL
+        glNormal3d(cos(angle1), 0, sin(angle1)); //pointing away
+        glVertex3d(x1, -height/2, z1);
+        //BR
+        glNormal3d(cos(angle2), 0, sin(angle2));
+        glVertex3d(x2, -height/2, z2);
+        //TR
+        glNormal3d(cos(angle2), 0, sin(angle2));
+        glVertex3d(x2, height/2, z2);
+        //TL
+        glNormal3d(cos(angle1), 0, sin(angle1));
+        glVertex3d(x1, height/2, z1);
+
+        glEnd();
+    }
 }
 
 
@@ -188,7 +217,7 @@ void display(void)
         break;
     case 1:
         //drawCube(1);
-        drawCylinder(1.0f, 3.0f, 20);
+        drawCylinder(1.0f, 3.0f, 50);
         break;
     case 2:
         // draw your first composite object here
