@@ -63,7 +63,7 @@ void setupLighting()
 
 void drawSphere(double r)
 {
-    glScalef(r, r, r);
+    //glScalef(r, r, r);
     int i, j;
     int n = 20;
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -179,6 +179,30 @@ void drawCylinder(double radius, double height, int sections) {
     }
 }
 
+void drawComp1(double radius, double size) {
+    glPushMatrix();
+    glScalef(1/size, 1/size, 1/size);
+    drawSphere(radius);
+
+    for (int i = 0; i < 360; i += 45) {
+        for (int j = -45; j <= 45; j += 90) {
+            glPushMatrix();
+            glRotatef(i, 0.0f, 1.0f, 0.0f);
+            glRotatef(j, 1.0f, 0.0f, 0.0f);
+            glTranslatef(0.0f, 0.0f, size*radius);
+            drawCylinder(radius * 0.5, size, 20);
+            glTranslatef(0.0f, -size/2, 0.0f);
+            drawSphere(0.1f);
+            glTranslatef(0.0f, size, 0.0f);
+            drawSphere(0.1f);
+
+            glPopMatrix();
+        }
+    }
+
+    glPopMatrix();
+}
+
 
 void display(void)
 {
@@ -220,7 +244,7 @@ void display(void)
         drawCylinder(1.0f, 3.0f, 50);
         break;
     case 2:
-        // draw your first composite object here
+        drawComp1(1.0f, 10.0f);
         break;
     case 3:
         // draw your second composite object here
