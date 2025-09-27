@@ -74,21 +74,25 @@ void drawSphere(double r)
             double x1 = sin(i * M_PI / n) * sin(j * M_PI / n);
             double y1 = cos(i * M_PI / n) * sin(j * M_PI / n);
             double z1 = cos(j * M_PI / n);
+            glNormal3d(x1, y1, z1);
             glVertex3d(x1, y1, z1);
 
             double x2 = sin((i + 1) * M_PI / n) * sin(j * M_PI / n);
             double y2 = cos((i + 1) * M_PI / n) * sin(j * M_PI / n);
             double z2 = cos(j * M_PI / n);
+            glNormal3d(x2, y2, z2);
             glVertex3d(x2, y2, z2);
 
             double x3 = sin((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
             double y3 = cos((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
             double z3 = cos((j + 1) * M_PI / n);
+            glNormal3d(x3, y3, z3);
             glVertex3d(x3, y3, z3);
 
             double x4 = sin(i * M_PI / n) * sin((j + 1) * M_PI / n);
             double y4 = cos(i * M_PI / n) * sin((j + 1) * M_PI / n);
             double z4 = cos((j + 1) * M_PI / n);
+            glNormal3d(x4, y4, z4);
             glVertex3d(x4, y4, z4);
 
             glEnd();
