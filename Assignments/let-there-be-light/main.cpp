@@ -40,9 +40,9 @@ void setupLighting()
     glEnable(GL_NORMALIZE);
 
     // Lights, material properties
-    GLfloat    ambientProperties[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-    GLfloat    diffuseProperties[] = { 0.8f, 0.8f, 0.8f, 1.0f };
-    GLfloat    specularProperties[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat ambientProperties[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+    GLfloat diffuseProperties[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+    GLfloat specularProperties[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     GLfloat lightPosition[] = { -100.0f,100.0f,100.0f,1.0f };
 
     glClearDepth(1.0);
@@ -80,6 +80,37 @@ void drawSphere(double r)
 
 }
 
+void drawSquare(double size) {
+    glBegin(GL_QUADS);
+    glVertex3d(-size/2, -size/2, 0);
+    glVertex3d(size/2, -size/2, 0);
+    glVertex3d(size/2, size/2, 0);
+    glVertex3d(-size/2, size/2, 0);
+    glEnd();
+}
+
+void drawCube(double size) {
+
+    //around x axis - 4 faces
+    for (int i = 0; i < 4; i++) {
+        glPushMatrix();
+        glRotatef(i*90.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, size/2);
+        drawSquare(size);
+        glPopMatrix();
+    }
+
+    //around y axis - 2 faces (90, 270)
+    for (int i = 1; i < 3; i++) {
+        glPushMatrix();
+        glRotatef(90 + (i-1)*180 , 0.0f, 1.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, size/2);
+        drawSquare(size);
+        glPopMatrix();
+    }
+}
+
+
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -116,7 +147,7 @@ void display(void)
         drawSphere(1);
         break;
     case 1:
-        // draw your second primitive object here
+        drawCube(1);
         break;
     case 2:
         // draw your first composite object here
