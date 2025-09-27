@@ -17,6 +17,15 @@
 #include <GLUT/GLUT.h>
 #endif
 
+
+
+#define BENDER_HEAD_RADIUS 1.0f
+#define BENDER_HEAD_SIZE 2.5f
+#define BENDER_EYE_COVER_SIZE 0.7f
+#define BENDER_EYE_COVER_RADIUS 0.3f
+#define BENDER_EYE_SIZE 0.33f
+#define BENDER_EYE_DIST BENDER_HEAD_RADIUS/3.3
+
 using namespace std;
 
 // global variable
@@ -69,7 +78,6 @@ void setMaterial(float r, float g, float b) {
 
 void drawSphere(double r)
 {
-    //glScalef(r, r, r);
     int i, j;
     int n = 20;
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -77,27 +85,27 @@ void drawSphere(double r)
         for (j = 0; j < n; j++)
         {
             glBegin(GL_POLYGON);
-            double x1 = sin(i * M_PI / n) * sin(j * M_PI / n);
-            double y1 = cos(i * M_PI / n) * sin(j * M_PI / n);
-            double z1 = cos(j * M_PI / n);
+            double x1 = r*sin(i * M_PI / n) * sin(j * M_PI / n);
+            double y1 = r*cos(i * M_PI / n) * sin(j * M_PI / n);
+            double z1 = r*cos(j * M_PI / n);
             glNormal3d(x1, y1, z1);
             glVertex3d(x1, y1, z1);
 
-            double x2 = sin((i + 1) * M_PI / n) * sin(j * M_PI / n);
-            double y2 = cos((i + 1) * M_PI / n) * sin(j * M_PI / n);
-            double z2 = cos(j * M_PI / n);
+            double x2 = r*sin((i + 1) * M_PI / n) * sin(j * M_PI / n);
+            double y2 = r*cos((i + 1) * M_PI / n) * sin(j * M_PI / n);
+            double z2 = r*cos(j * M_PI / n);
             glNormal3d(x2, y2, z2);
             glVertex3d(x2, y2, z2);
 
-            double x3 = sin((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
-            double y3 = cos((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
-            double z3 = cos((j + 1) * M_PI / n);
+            double x3 = r*sin((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
+            double y3 = r*cos((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
+            double z3 = r*cos((j + 1) * M_PI / n);
             glNormal3d(x3, y3, z3);
             glVertex3d(x3, y3, z3);
 
-            double x4 = sin(i * M_PI / n) * sin((j + 1) * M_PI / n);
-            double y4 = cos(i * M_PI / n) * sin((j + 1) * M_PI / n);
-            double z4 = cos((j + 1) * M_PI / n);
+            double x4 = r*sin(i * M_PI / n) * sin((j + 1) * M_PI / n);
+            double y4 = r*cos(i * M_PI / n) * sin((j + 1) * M_PI / n);
+            double z4 = r*cos((j + 1) * M_PI / n);
             glNormal3d(x4, y4, z4);
             glVertex3d(x4, y4, z4);
 
@@ -135,25 +143,27 @@ void drawCube(double size) {
     }
 }
 
-void drawCylinder(double radius, double height, int sections) {
+void drawCylinder(double radius, double height, int sections, bool include_ends) {
 
-    //top of the cylinder, normal pointing straight up
-    glBegin(GL_POLYGON);
-    glNormal3d(0.0f, 1.0f, 0.0f);
-    for (int i = 0; i < sections; i++) {
-        double angle = 2 * M_PI * i / sections;
-        glVertex3d(radius*cos(angle), height/2, radius*sin(angle));
-    }
-    glEnd();
+    if (include_ends) {
+        //top of the cylinder, normal pointing straight up
+        glBegin(GL_POLYGON);
+        glNormal3d(0.0f, 1.0f, 0.0f);
+        for (int i = 0; i < sections; i++) {
+            double angle = 2 * M_PI * i / sections;
+            glVertex3d(radius*cos(angle), height/2, radius*sin(angle));
+        }
+        glEnd();
 
-    //bottom face - normal pointing down
-    glBegin(GL_POLYGON);
-    glNormal3d(0.0f, -1.0f, 0.0f);
-    for (int i = 0; i < sections; i++) {
-        double angle = 2 * M_PI * i / sections;
-        glVertex3d(radius*cos(angle), -height/2, radius*sin(angle));
+        //bottom face - normal pointing down
+        glBegin(GL_POLYGON);
+        glNormal3d(0.0f, -1.0f, 0.0f);
+        for (int i = 0; i < sections; i++) {
+            double angle = 2 * M_PI * i / sections;
+            glVertex3d(radius*cos(angle), -height/2, radius*sin(angle));
+        }
+        glEnd();
     }
-    glEnd();
 
     for (int i = 0; i < sections; i++) {
         //calc angles for two consecutive sections
@@ -198,12 +208,12 @@ void drawComp1(double radius, double size) {
             glRotatef(j, 1.0f, 0.0f, 0.0f);
             glTranslatef(0.0f, 0.0f, size*radius);
             setMaterial(0.0f, 0.0f, 1.0f);
-            drawCylinder(radius * 0.5, size, 20);
+            drawCylinder(radius * 0.5, size, 20, true);
             glTranslatef(0.0f, -size/2, 0.0f);
             setMaterial(1.0f, 1.0f, 0.01f);
-            drawSphere(0.1f);
+            drawSphere(radius/2);
             glTranslatef(0.0f, size, 0.0f);
-            drawSphere(0.1f);
+            //drawSphere(radius);
             /*
             glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
             glTranslatef(0.0f, 0.0f, size/2);
@@ -217,7 +227,98 @@ void drawComp1(double radius, double size) {
     glPopMatrix();
 }
 
+void drawBenderHead() {
+
+
+    setMaterial(0.7f, 0.7f, 0.8f);
+
+    drawCylinder(BENDER_HEAD_RADIUS, BENDER_HEAD_SIZE, 50, true);
+
+    glPushMatrix();
+    glTranslatef(0.0f, BENDER_HEAD_SIZE/2, 0.0f);
+    drawSphere(BENDER_HEAD_RADIUS);
+    glPopMatrix();
+}
+
+void drawBenderAntenna() {
+    glPushMatrix();
+    glTranslatef(0.0f, BENDER_HEAD_SIZE*0.9, 0.0f);
+    glPushMatrix();
+    glScalef(1.3f, 1.0f, 1.1f);
+    drawSphere(0.1f);
+    glPopMatrix();
+    glPushMatrix();
+    glScalef(1.0f, 10.0f, 1.0f);
+    drawSphere(0.05f);
+    glPopMatrix();
+    glTranslatef(0.0f, 0.5f, 0.0);
+    drawSphere(0.08f);
+    glPopMatrix();
+}
+
+void drawBenderEyeCover() {
+
+    glPushMatrix();
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glTranslatef(0.0f, BENDER_HEAD_RADIUS*0.9, -BENDER_HEAD_SIZE/6);
+    glPushMatrix();
+    glScalef(2.5f, 1.0f, 1.3f);
+    drawCylinder(BENDER_EYE_COVER_RADIUS, BENDER_EYE_COVER_SIZE, 50, false);
+    setMaterial(0.0f, 0.0f, 0.0f);
+    glScalef(0.99f, 0.99f, 0.99f);
+    drawCylinder(0.3f, 0.3f, 50, true);
+    glPopMatrix();
+    glPopMatrix();
+}
+
+void drawBenderEyes() {
+    setMaterial(1.0f, 1.0f, 0.3f);
+    glPushMatrix();
+    glTranslatef(-BENDER_EYE_DIST, BENDER_EYE_COVER_RADIUS*1.4f, BENDER_HEAD_RADIUS);
+    drawSphere(BENDER_EYE_SIZE);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, BENDER_EYE_SIZE);
+    setMaterial(0.0f, 0.0f, 0.0f);
+    drawSquare(0.1f);
+    glPopMatrix();
+    setMaterial(1.0f, 1.0f, 0.3f);
+    glTranslatef(2*BENDER_EYE_DIST, 0.0f, 0.0f);
+    drawSphere(BENDER_EYE_SIZE);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, BENDER_EYE_SIZE);
+    setMaterial(0.0f, 0.0f, 0.0f);
+    drawSquare(0.1f);
+    glPopMatrix();
+    glPopMatrix();
+}
+
+void drawBenderMouth() {
+
+    glPushMatrix();
+
+    glTranslatef(0.0f, -BENDER_EYE_COVER_RADIUS*1.5, BENDER_HEAD_RADIUS/5);
+    setMaterial(1.0f, 1.0f, 0.3f);
+    glScalef(1.7f, 1.0f, 1.7f);
+    drawCylinder(BENDER_HEAD_RADIUS/2, BENDER_EYE_COVER_SIZE, 50, false);
+    setMaterial(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.0f, 0.0f, 0.001f);
+    drawCylinder(BENDER_HEAD_RADIUS/2, 0.01f, 50, false);
+
+    glPopMatrix();
+}
+
 void bender() {
+    glPushMatrix();
+
+    glTranslatef(0.0f, -0.4f, 0.0f);
+    glScalef(0.8f, 0.8f, 0.8f);
+    drawBenderHead();
+    drawBenderAntenna();
+    drawBenderEyeCover();
+    drawBenderEyes();
+    drawBenderMouth();
+
+    glPopMatrix();
 
 }
 
@@ -226,6 +327,8 @@ void bender() {
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    setMaterial(1.0f, 0.0f, 0.0f);
 
     if (m_Smooth) {
         glShadeModel(GL_SMOOTH);
@@ -260,13 +363,13 @@ void display(void)
         break;
     case 1:
         //drawCube(1);
-        drawCylinder(1.0f, 3.0f, 50);
+        drawCylinder(1.0f, 3.0f, 50, true);
         break;
     case 2:
         drawComp1(1.0f, 10.0f);
         break;
     case 3:
-        // draw your second composite object here
+        bender();
         break;
     default:
         break;
