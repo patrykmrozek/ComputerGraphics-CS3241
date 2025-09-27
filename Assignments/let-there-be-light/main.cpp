@@ -60,6 +60,12 @@ void setupLighting()
 
 }
 
+//helper to change colors
+void setMaterial(float r, float g, float b) {
+    GLfloat diffuse[] = {r, g, b, 1.0f};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+}
+
 
 void drawSphere(double r)
 {
@@ -182,6 +188,7 @@ void drawCylinder(double radius, double height, int sections) {
 void drawComp1(double radius, double size) {
     glPushMatrix();
     glScalef(1/size, 1/size, 1/size);
+    setMaterial(1.0f, 0.0f, 1.0f);
     drawSphere(radius);
 
     for (int i = 0; i < 360; i += 45) {
@@ -190,18 +197,30 @@ void drawComp1(double radius, double size) {
             glRotatef(i, 0.0f, 1.0f, 0.0f);
             glRotatef(j, 1.0f, 0.0f, 0.0f);
             glTranslatef(0.0f, 0.0f, size*radius);
+            setMaterial(0.0f, 0.0f, 1.0f);
             drawCylinder(radius * 0.5, size, 20);
             glTranslatef(0.0f, -size/2, 0.0f);
+            setMaterial(1.0f, 1.0f, 0.01f);
             drawSphere(0.1f);
             glTranslatef(0.0f, size, 0.0f);
             drawSphere(0.1f);
+            /*
+            glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+            glTranslatef(0.0f, 0.0f, size/2);
 
+            drawCylinder(radius*0.3, size, 20);
+            */
             glPopMatrix();
         }
     }
 
     glPopMatrix();
 }
+
+void bender() {
+
+}
+
 
 
 void display(void)
