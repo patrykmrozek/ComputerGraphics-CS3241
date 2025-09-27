@@ -110,7 +110,6 @@ void drawSquare(double size) {
 }
 
 void drawCube(double size) {
-
     //around x axis - 4 faces
     for (int i = 0; i < 4; i++) {
         glPushMatrix();
@@ -128,6 +127,27 @@ void drawCube(double size) {
         drawSquare(size);
         glPopMatrix();
     }
+}
+
+void drawCylinder(double radius, double height, int sections) {
+
+    //top of the cylinder, normal pointing straight up
+    glBegin(GL_POLYGON);
+    glNormal3d(0.0f, 1.0f, 0.0f);
+    for (int i = 0; i < sections; i++) {
+        double angle = 2 * M_PI * i / sections;
+        glVertex3d(radius*cos(angle), height/2, radius*sin(angle));
+    }
+    glEnd();
+
+    //bottom face - normal pointing down
+    glBegin(GL_POLYGON);
+    glNormal3d(0.0f, -1.0f, 0.0f);
+    for (int i = 0; i < sections; i++) {
+        double angle = 2 * M_PI * i / sections;
+        glVertex3d(radius*cos(angle), -height/2, radius*sin(angle));
+    }
+    glEnd();
 }
 
 
@@ -167,7 +187,8 @@ void display(void)
         drawSphere(1);
         break;
     case 1:
-        drawCube(1);
+        //drawCube(1);
+        drawCylinder(1.0f, 3.0f, 20);
         break;
     case 2:
         // draw your first composite object here
