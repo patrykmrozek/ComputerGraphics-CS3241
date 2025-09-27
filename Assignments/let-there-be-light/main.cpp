@@ -26,6 +26,31 @@
 #define BENDER_EYE_SIZE 0.33f
 #define BENDER_EYE_DIST BENDER_HEAD_RADIUS/3.3
 
+//camera setup
+// constants
+#define INITIAL_CAMERA_X 0.0f
+#define INITIAL_CAMERA_Y 0.0f
+#define INITIAL_CAMERA_Z 0.0f
+#define INITIAL_LOOKAT_X 0.0f
+#define INITIAL_LOOKAT_Y 0.0f
+#define INITIAL_LOOKAT_Z -6.0f
+#define INITIAL_UP_X 0.0f
+#define INITIAL_UP_Y 1.0f
+#define INITIAL_UP_Z 0.0f
+#define INITIAL_NEAR 1.0f
+#define INITIAL_FAR 20.0f
+#define INITIAL_FOVY 40.0f
+
+//global vars
+double camera_x = 0.0f, camera_y = 0.0f, camera_z = 0.0f;
+double lookat_x = 0.0f, lookat_y = 0.0f, lookat_z = -6.0f;
+double up_x = 0.0f, up_y = 1.0f, up_z = 0.0f;
+double near_plane = 1.0f;
+double far_plane = 20.0f;
+double fovy = 40.0f;
+
+
+
 using namespace std;
 
 // global variable
@@ -88,25 +113,25 @@ void drawSphere(double r)
             double x1 = r*sin(i * M_PI / n) * sin(j * M_PI / n);
             double y1 = r*cos(i * M_PI / n) * sin(j * M_PI / n);
             double z1 = r*cos(j * M_PI / n);
-            glNormal3d(x1, y1, z1);
+            glNormal3d(x1/r, y1/r, z1/r);
             glVertex3d(x1, y1, z1);
 
             double x2 = r*sin((i + 1) * M_PI / n) * sin(j * M_PI / n);
             double y2 = r*cos((i + 1) * M_PI / n) * sin(j * M_PI / n);
             double z2 = r*cos(j * M_PI / n);
-            glNormal3d(x2, y2, z2);
+            glNormal3d(x2/r, y2/r, z2/r);
             glVertex3d(x2, y2, z2);
 
             double x3 = r*sin((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
             double y3 = r*cos((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
             double z3 = r*cos((j + 1) * M_PI / n);
-            glNormal3d(x3, y3, z3);
+            glNormal3d(x3/r, y3/r, z3/r);
             glVertex3d(x3, y3, z3);
 
             double x4 = r*sin(i * M_PI / n) * sin((j + 1) * M_PI / n);
             double y4 = r*cos(i * M_PI / n) * sin((j + 1) * M_PI / n);
             double z4 = r*cos((j + 1) * M_PI / n);
-            glNormal3d(x4, y4, z4);
+            glNormal3d(x4/r, y4/r, z4/r);
             glVertex3d(x4, y4, z4);
 
             glEnd();
@@ -206,7 +231,7 @@ void drawComp1(double radius, double size) {
             glPushMatrix();
             glRotatef(i, 0.0f, 1.0f, 0.0f);
             glRotatef(j, 1.0f, 0.0f, 0.0f);
-            glTranslatef(0.0f, 0.0f, size*radius);
+            glTranslatef(0.0f, 0.0f, size/2);
             setMaterial(0.0f, 0.0f, 1.0f);
             drawCylinder(radius * 0.5, size, 20, true);
             glTranslatef(0.0f, -size/2, 0.0f);
@@ -322,6 +347,67 @@ void bender() {
 
 }
 
+void updateProjection() {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(fovy, 1.0, near_plane, far_plane);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void resetCamera() {
+    camera_x = INITIAL_CAMERA_X;
+    camera_y = INITIAL_CAMERA_Y;
+    camera_z = INITIAL_CAMERA_Z;
+    lookat_x = INITIAL_LOOKAT_X;
+    lookat_y = INITIAL_LOOKAT_Y;
+    lookat_z = INITIAL_LOOKAT_Z;
+    up_x = INITIAL_UP_X;
+    up_y = INITIAL_UP_Y;
+    up_z = INITIAL_UP_Z;
+    near_plane = INITIAL_NEAR;
+    far_plane = INITIAL_FAR;
+    fovy = INITIAL_FOVY;
+
+    updateProjection();
+    glutPostRedisplay();
+}
+
+void bestAngle() {
+    up_x = INITIAL_UP_X;
+    up_y = INITIAL_UP_Y;
+    up_z = INITIAL_UP_Z;
+    near_plane = INITIAL_NEAR;
+    far_plane = INITIAL_FAR;
+    fovy = INITIAL_FOVY;
+
+    switch (current_object) {
+    case 0: //sphere
+        camera_x = 2.0f; camera_y = 1.0f; camera_z = 2.0f;
+        lookat_x = 0.0f; lookat_y = 0.0f; lookat_z = -6.0f;
+        break;
+    case 1: //cylinder
+        camera_x = 1.5f; camera_y = 2.0f; camera_z = 1.5f;
+        lookat_x = 0.0f; lookat_y = 0.0f; lookat_z = -6.0f;
+        break;
+    case 2: //comp1
+        camera_x = 1.0f; camera_y = 1.0f; camera_z = 1.0f;
+        lookat_x = 0.0f; lookat_y = 0.0f; lookat_z = -6.0f;
+        fovy = 20.0f; // Wider view for complex object
+        break;
+    case 3: //bender
+        camera_x = 1.0f; camera_y = 0.5f; camera_z = 2.0f;
+        lookat_x = 0.0f; lookat_y = -0.5f; lookat_z = -6.0f;
+        break;
+    default:
+        camera_x = 2.0f; camera_y = 1.0f; camera_z = 2.0f;
+        lookat_x = 0.0f; lookat_y = 0.0f; lookat_z = -6.0f;
+        break;
+    }
+
+    updateProjection();
+    glutPostRedisplay();
+}
+
 
 
 void display(void)
@@ -347,6 +433,12 @@ void display(void)
         glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_spec);
         glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shine);
     }
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(camera_x, camera_y, camera_z,
+            lookat_x, lookat_y, lookat_z,
+            up_x, up_y, up_z);
 
 
     glPushMatrix();
@@ -411,6 +503,44 @@ void keyboard(unsigned char key, int x, int y)
     case '4':
         current_object = key - '1';
         break;
+    case 'n':
+        near_plane -= 0.1f;
+        if (near_plane < 0.1f) near_plane = 0.1f;
+        updateProjection();
+        cout << "NEAR PLANE: " << near_plane << "\n";
+        break;
+    case 'N':
+        near_plane += 0.1f;
+        updateProjection();
+        break;
+    case 'f':
+        far_plane -= 1.0f;
+        if (far_plane < near_plane + 1.0f) far_plane = near_plane + 1.0f;
+        updateProjection();
+        cout << "FAR PLANE: " << far_plane << "\n";
+        break;
+    case 'F':
+        far_plane += 1.0f;
+        updateProjection();
+        break;
+    case 'o':
+        fovy -= 2.0f;
+        if (fovy < 10.0f) fovy = 10.0f;
+        updateProjection();
+        break;
+    case 'O':
+        fovy += 2.0f;
+        if (fovy > 150.0f) fovy = 150.0f;
+        updateProjection();
+        break;
+    case 'r':
+        cout << "RESETTING!\n";
+        resetCamera();
+        break;
+    case 'R':
+        cout << "BEST ANGLE!\n";
+        bestAngle();
+        break;
 
     case 'Q':
     case 'q':
@@ -467,6 +597,11 @@ int main(int argc, char** argv)
     cout << "W: Draw Wireframe" << endl;
     cout << "P: Draw Polygon" << endl;
     cout << "V: Draw Vertices" << endl;
+    cout << "n/N: Decrease/Increase near plane" << endl;
+    cout << "f/F: Decrease/Increase far plane" << endl;
+    cout << "o/O: Decrease/Increase field of view" << endl;
+    cout << "r: Reset camera to initial position" << endl;
+    cout << "R: Set best viewing angle for current object" << endl;
     cout << "Q: Quit" << endl << endl;
 
     cout << "Left mouse click and drag: rotate the object" << endl;
@@ -488,10 +623,8 @@ int main(int argc, char** argv)
     glDepthMask(GL_TRUE);
 
     glMatrixMode(GL_PROJECTION);
-    gluPerspective( /* field of view in degree */ 40.0,
-        /* aspect ratio */ 1.0,
-        /* Z near */ 1.0, /* Z far */ 80.0);
     glMatrixMode(GL_MODELVIEW);
+    updateProjection();
     glutMainLoop();
 
     return 0;
