@@ -177,8 +177,8 @@ void keyboard (unsigned char key, int x, int y)
 
 		case 'e':
 		case 'E':
-			// Do something to erase all the control points added
-
+		    nPt = 0;
+            glutPostRedisplay();
 		break;
 
 		case 'Q':
