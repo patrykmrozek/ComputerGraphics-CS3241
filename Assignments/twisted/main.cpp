@@ -1,6 +1,7 @@
 // CS3241Lab4.cpp : Defines the entry point for the console application.
 //#include <cmath>
 #include "math.h"
+#include <OpenGL/OpenGL.h>
 #include <iostream>
 #include <fstream>
 
@@ -56,21 +57,28 @@ void drawControlPoints()
 
 void drawControlLines()
 {
-
+    if (nPt < 2) return;
+    glColor3f(0.0, 1.0, 0.0);
+    glBegin(GL_LINE_STRIP);
+        for (int i = 0; i < nPt; i++) {
+            glVertex2i(ptList[i].x, ptList[i].y);
+        }
+    glEnd();
 }
 
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glPushMatrix();
-	if(displayControlPoints)
-	{
-	    drawControlPoints();
-	}
 
 	if(displayControlLines)
 	{
 	    drawControlLines();
+	}
+
+	glPushMatrix();
+	if(displayControlPoints)
+	{
+	    drawControlPoints();
 	}
 
 	glPopMatrix();
