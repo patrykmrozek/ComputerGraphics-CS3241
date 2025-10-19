@@ -15,9 +15,9 @@
 using namespace std;
 
 // Global variables that you can use
-struct Point {
-	int x,y;
-};
+typedef struct Point {
+	float x,y;
+} Point;
 
 // Storage of control points
 int nPt = 0;
@@ -66,6 +66,44 @@ void drawControlLines()
     glEnd();
 }
 
+Point getBezierPoint(float t, int b)
+{
+    //cubic bezier:
+    //p(t) = (1-t)^3p00 + 3t(1-t)p01 + 3t^2(1-t) + t^3p02
+    float omt = 1.0f - t;
+    //(1-t)^3
+    float b0 = omt * omt * omt;
+    //3t(1-t)
+    float b1 = 3 * t * omt * omt;
+    //3t^2(1-t)
+    float b2 = 3 * t * t * omt;
+    //t^3
+    float b3 = t * t * t;
+
+    //p(t).x
+    Point p;
+    p.x = (int)((b0 * ptList[b+0].x) + (b1 * ptList[b+1].x) + (b2 * ptList[b+2].x) + (b3 * ptList[b+3].x));
+    p.y = (int)((b0 * ptList[b+0].y) + (b1 * ptList[b+1].y) + (b2 * ptList[b+2].y) + (b3 * ptList[b+3].y));
+
+    return p;
+}
+
+void drawBezierCurves() {
+    if (nPt < 4) return;
+
+    glColor3f(0.0, 0.0, 0.0);
+    //sectors of 4, sharing the last/first point
+    for (int i = 0; i+3 < nPt; i+=3) {
+        glBegin(GL_LINE_STRIP);
+            for (float t = 0.0f; t < 1.0f; t += 0.01f) {
+                Point p = getBezierPoint(t, i);
+                glVertex2f((float)p.x, (float)p.y);
+            }
+        glEnd();
+    }
+
+}
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -82,6 +120,9 @@ void display(void)
 	}
 
 	glPopMatrix();
+
+	drawBezierCurves();
+
 	glutSwapBuffers ();
 }
 
