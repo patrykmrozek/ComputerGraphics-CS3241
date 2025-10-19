@@ -4,16 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-#define GL_SILENCE_DEPRECATION
-
-#ifdef _WIN32
-#include <Windows.h>
-#include "GL/glut.h"
-#define M_PI 3.141592654
-#elif __APPLE__
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
-#endif
 
 #define MAXPTNO 1000
 #define NLINESEGMENT 32
@@ -36,7 +28,7 @@ bool displayControlLines = true;
 bool displayTangentVectors = false;
 bool displayObjects = false;
 bool C1Continuity = false;
-	
+
 void drawRightArrow()
 {
 	glColor3f(0,1,0);
@@ -49,28 +41,36 @@ void drawRightArrow()
 	glEnd();
 }
 
+void drawControlPoints()
+{
+    glPointSize(5);
+	glBegin(GL_POINTS);
+	for(int i=0;i<nPt; i++)
+	{
+			glColor3f(0,0,0);
+			glVertex2d(ptList[i].x,ptList[i].y);
+	}
+	glEnd();
+	glPointSize(1);
+}
+
+void drawControlLines()
+{
+
+}
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
 	if(displayControlPoints)
 	{
-
-		glPointSize(5);
-		glBegin(GL_POINTS);
-		for(int i=0;i<nPt; i++)
-		{
-				glColor3f(0,0,0);
-				glVertex2d(ptList[i].x,ptList[i].y);
-		}
-		glEnd();
-		glPointSize(1);
-
+	    drawControlPoints();
 	}
 
 	if(displayControlLines)
 	{
-		glColor3f(0,1,0);
+	    drawControlLines();
 	}
 
 	glPopMatrix();
@@ -82,10 +82,10 @@ void reshape (int w, int h)
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0,w,h,0);  
+	gluOrtho2D(0,w,h,0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	
+
 }
 
 void init(void)
@@ -159,6 +159,7 @@ void keyboard (unsigned char key, int x, int y)
 		case 'L':
 		case 'l':
 			displayControlLines = !displayControlLines;
+			printf("Control lines: %d\n", (int)displayControlLines);
 		break;
 
 		case 'C':
@@ -220,7 +221,7 @@ int main(int argc, char **argv)
 	cout << "P: Toggle displaying control points" <<endl;
 	cout << "L: Toggle displaying control lines" <<endl;
 	cout << "E: Erase all points (Clear)" << endl;
-	cout << "C: Toggle C1 continuity" <<endl;	
+	cout << "C: Toggle C1 continuity" <<endl;
 	cout << "T: Toggle displaying tangent vectors" <<endl;
 	cout << "O: Toggle displaying objects" <<endl;
 	cout << "R: Read in control points from \"savefile.txt\"" <<endl;
