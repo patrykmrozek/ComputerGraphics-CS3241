@@ -88,7 +88,8 @@ Point getBezierPoint(float t, int b)
     return p;
 }
 
-void drawBezierCurves() {
+void drawBezierCurves()
+{
     if (nPt < 4) return;
 
     glColor3f(0.0, 0.0, 0.0);
@@ -101,8 +102,19 @@ void drawBezierCurves() {
             }
         glEnd();
     }
+}
+
+void applyC1Continuity()
+{
+    if (nPt < 7) return; //need at least the first 2 segments (skip first one)
+    for (int i = 3; i+3 < nPt; i += 3) {
+        ptList[i+1].x = ptList[i].x * 2 - ptList[i-1].x;
+        ptList[i+1].y = ptList[i].y * 2 - ptList[i-1].y;
+    }
 
 }
+
+
 
 void display(void)
 {
@@ -214,6 +226,7 @@ void keyboard (unsigned char key, int x, int y)
 		case 'C':
 		case 'c':
 			C1Continuity = !C1Continuity;
+			applyC1Continuity();
 		break;
 
 		case 'e':
