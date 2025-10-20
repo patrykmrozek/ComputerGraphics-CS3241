@@ -115,6 +115,23 @@ Point getBezierPoint(float t, int b)
     return p;
 }
 
+Point getDerivedTangent(Point p0, Point p1, Point p2, Point p3, float t)
+{
+    //p(t) = (1-t)^3p0 + 3t(1-t)p1 + 3t^2(1-t)p2 + t^3p3
+    float omt = 1 - t;
+    //p'(t) = 3(1-t)^2(p1-p0) + 6(1-t)t(p2-p1) + 3t^2(p3-p2)
+    Point d;
+    d.x = 3 * omt * omt * (p1.x - p0.x) +
+          6 * omt * t * (p2.x - p1.x) +
+          3 * t * t * (p3.x - p2.x);
+
+    d.y = 3 * omt * omt * (p1.y - p0.y) +
+          6 * omt * t * (p2.y - p1.y) +
+          3 * t * t * (p3.y - p2.y);
+
+    return d;
+}
+
 void applyC1Continuity()
 {
     if (nPt < 7) return; //need at least the first 2 segments (skip first one)
