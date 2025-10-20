@@ -22,6 +22,8 @@ typedef struct Point {
 // Storage of control points
 int nPt = 0;
 Point ptList[MAXPTNO];
+bool modList[MAXPTNO] = {false}; //modified points (due to c1)
+
 
 // Display options
 bool displayControlPoints = true;
@@ -46,10 +48,14 @@ void drawControlPoints()
 {
     glPointSize(5);
 	glBegin(GL_POINTS);
-	for(int i=0;i<nPt; i++)
-	{
-			glColor3f(0,0,0);
-			glVertex2d(ptList[i].x,ptList[i].y);
+	for(int i=0;i<nPt; i++) {
+	if (modList[i]) {
+            glColor3f(1.0, 0.0, 0.0); //if modified (red)
+        }
+        else {
+            glColor3f(0.0, 0.0, 0.0); //else (black)
+        }
+	    glVertex2d(ptList[i].x,ptList[i].y);
 	}
 	glEnd();
 	glPointSize(1);
@@ -61,12 +67,13 @@ void drawControlLines()
     glColor3f(0.0, 1.0, 0.0);
     glBegin(GL_LINE_STRIP);
         for (int i = 0; i < nPt; i++) {
+
             glVertex2i(ptList[i].x, ptList[i].y);
         }
     glEnd();
 }
 
-Point getBezierPoint(float t, int b)
+Point getBezierPoint(float t, const Point p0, const Point p1, const Point p2, const Point p3)
 {
     //cubic bezier:
     //p(t) = (1-t)^3p00 + 3t(1-t)p01 + 3t^2(1-t) + t^3p02
@@ -82,11 +89,24 @@ Point getBezierPoint(float t, int b)
 
     //p(t).x
     Point p;
-    p.x = (int)((b0 * ptList[b+0].x) + (b1 * ptList[b+1].x) + (b2 * ptList[b+2].x) + (b3 * ptList[b+3].x));
-    p.y = (int)((b0 * ptList[b+0].y) + (b1 * ptList[b+1].y) + (b2 * ptList[b+2].y) + (b3 * ptList[b+3].y));
+    p.x = (int)((b0 * p0.x) + (b1 * p1.x) + (b2 * p2.x) + (b3 * p3.x));
+    p.y = (int)((b0 * p0.y) + (b1 * p1.y) + (b2 * p2.y) + (b3 * p3.y));
 
     return p;
 }
+
+/*
+void applyC1Continuity()
+{
+    if (nPt < 7) return; //need at least the first 2 segments (skip first one)
+    for (int i = 3; i+3 < nPt; i += 3) {
+        ptList[i+1].x = ptList[i].x * 2 - ptList[i-1].x;
+        ptList[i+1].y = ptList[i].y * 2 - ptList[i-1].y;
+
+        modList[i+1] = true; //mark as modified
+    }
+}
+*/
 
 void drawBezierCurves()
 {
@@ -95,25 +115,26 @@ void drawBezierCurves()
     glColor3f(0.0, 0.0, 0.0);
     //sectors of 4, sharing the last/first point
     for (int i = 0; i+3 < nPt; i+=3) {
+        Point p0 = ptList[i+0];
+        Point p1 = ptList[i+1];
+        Point p2 = ptList[i+2];
+        Point p3 = ptList[i+3];
+
+        if (C1Continuity && i >= 3) {
+            Point prevP2 = ptList[i-1]; //prev segments last handle
+            //p1 = 2p0 - prevP2
+            p1.x = 2.0f * p0.x - prevP2.x;
+            p1.y = 2.0f * p0.x - prevP2.y;
+        }
+
         glBegin(GL_LINE_STRIP);
             for (float t = 0.0f; t < 1.0f; t += 0.01f) {
-                Point p = getBezierPoint(t, i);
+                Point p = getBezierPoint(t, p0, p1, p2, p3);
                 glVertex2f((float)p.x, (float)p.y);
             }
         glEnd();
     }
 }
-
-void applyC1Continuity()
-{
-    if (nPt < 7) return; //need at least the first 2 segments (skip first one)
-    for (int i = 3; i+3 < nPt; i += 3) {
-        ptList[i+1].x = ptList[i].x * 2 - ptList[i-1].x;
-        ptList[i+1].y = ptList[i].y * 2 - ptList[i-1].y;
-    }
-
-}
-
 
 
 void display(void)
@@ -220,18 +241,22 @@ void keyboard (unsigned char key, int x, int y)
 		case 'L':
 		case 'l':
 			displayControlLines = !displayControlLines;
-			printf("Control lines: %d\n", (int)displayControlLines);
+			//printf("Control lines: %d\n", (int)displayControlLines);
 		break;
 
 		case 'C':
 		case 'c':
 			C1Continuity = !C1Continuity;
-			applyC1Continuity();
+			if (!C1Continuity) {
+			    memset(modList, false, sizeof(modList));
+			}
+			glutPostRedisplay();
 		break;
 
 		case 'e':
 		case 'E':
 		    nPt = 0;
+			memset(modList, false, sizeof(modList)); //set all to false
             glutPostRedisplay();
 		break;
 
@@ -270,6 +295,7 @@ void mouse(int button, int state, int x, int y)
 		}
 		ptList[nPt].x=x;
 		ptList[nPt].y=y;
+		modList[nPt] = false;
 		nPt++;
 	}
 	glutPostRedisplay();
