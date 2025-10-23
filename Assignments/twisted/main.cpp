@@ -12,7 +12,7 @@
 #define NLINESEGMENT 32
 #define NOBJECTONCURVE 8
 
-#define RAD2DEG(x) ((x) * 180/M_PI)
+#define RAD2DEG(x) ((x) * 180/ (float)M_PI)
 
 using namespace std;
 
@@ -86,18 +86,27 @@ void drawRightArrow()
 void drawControlPoints()
 {
     glPointSize(5);
-	glBegin(GL_POINTS);
-	for(int i=0;i<nPt; i++) {
-	if (modList[i]) {
-            glColor3f(1.0, 0.0, 0.0); //if modified (red)
+    glBegin(GL_POINTS);
+    for (int i = 0; i < nPt; ++i) {
+        glColor3f(modList[i] ? 1.0f : 0.0f, 0.0f, 0.0f); //red if modified
+        glVertex2f(ptList[i].x, ptList[i].y);
+    }
+    glEnd();
+    glPointSize(1);
+
+    //ghost points for original when C1 activated
+    if (C1Continuity && hasBackup) {
+        glPointSize(4);
+        glColor3f(0.7f, 0.7f, 0.7f);
+        glBegin(GL_POINTS);
+        for (int i = 4; i < nPt; i +=3) {
+            if (modList[i]) {
+                glVertex2f(original[i].x, original[i].y);
+            }
         }
-        else {
-            glColor3f(0.0, 0.0, 0.0); //else (black)
-        }
-	    glVertex2d(ptList[i].x,ptList[i].y);
-	}
-	glEnd();
-	glPointSize(1);
+        glEnd();
+        glPointSize(1);
+    }
 }
 
 void drawControlLines()
@@ -107,7 +116,7 @@ void drawControlLines()
     glBegin(GL_LINE_STRIP);
         for (int i = 0; i < nPt; i++) {
 
-            glVertex2i(ptList[i].x, ptList[i].y);
+            glVertex2f(ptList[i].x, ptList[i].y);
         }
     glEnd();
 }
@@ -171,9 +180,10 @@ void drawBezierCurves()
     for (int i = 0; i+3 < nPt; i+=3) {
 
         glBegin(GL_LINE_STRIP);
-            for (float t = 0.0f; t < 1.0f; t += 0.01f) {
+            for (int s = 0.0f; s <= NLINESEGMENT; s++) {
+                float t = (float)s / (float)NLINESEGMENT;
                 Point p = getBezierPoint(t, i);
-                glVertex2f((float)p.x, (float)p.y);
+                glVertex2f(p.x, p.y);
             }
         glEnd();
     }
@@ -379,8 +389,8 @@ void mouse(int button, int state, int x, int y)
 		ptList[nPt].y=y;
 		modList[nPt] = false;
 		nPt++;
-		hasBackup = false;
-		nBackup = 0;
+		//hasBackup = false;
+		//nBackup = 0;
 	}
 	glutPostRedisplay();
 }
