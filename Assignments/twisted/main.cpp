@@ -12,7 +12,9 @@
 #define NLINESEGMENT 32
 #define NOBJECTONCURVE 8
 
-#define RAD2DEG(x) ((x) * 180 / (float)M_PI)
+#define SPHERE_RADIUS 7
+
+#define RAD2DEG(x) ((x) * 180.0f / (float)M_PI)
 
 using namespace std;
 
@@ -30,6 +32,8 @@ Point original[MAXPTNO]; //copy of the original list
 bool modList[MAXPTNO] = {false}; //modified points (due to c1)
 int nBackup;
 bool hasBackup = false;
+
+float spin = 0;
 
 // Display options
 bool displayControlPoints = true;
@@ -85,40 +89,85 @@ void drawRightArrow()
 	glEnd();
 }
 
-//from assignment 2
-void drawSphere(){
-    //x = (r*sin(Phi)*cos(Theta))
-    //y = (r*sin(Phi)*sin(Theta))
-    //z = (r*cos(Phi))
-    const float r = 5.0f;
+void setupLighting()
+{
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_NORMALIZE);
+
+    // Lights, material properties
+    GLfloat ambientProperties[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+    GLfloat diffuseProperties[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+    GLfloat specularProperties[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat lightPosition[] = { -100.0f,100.0f,100.0f,1.0f };
+
+    glClearDepth(1.0);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientProperties);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseProperties);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularProperties);
+    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 0.0);
+
+    // Default : lighting
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
+
+}
+
+//helper to change colors
+void setMaterial(float r, float g, float b) {
+    GLfloat diff[] = {r, g, b, 1.0f};
+    GLfloat amb[]  = {r * 0.4f, g * 0.4f, b * 0.4f, 1.0f};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
+}
+
+//from assignment 3
+void drawSphere()
+{
+    int i, j;
     int n = 20;
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < 2*n; j++) {
-            float phi1 = (i*M_PI)/n;
-            float theta1 = j*M_PI/n;
-            float theta2 = (j+1)*M_PI/n;
-            float phi2 = (i+1)*M_PI/n;
-            glBegin(GL_QUADS);
-            glVertex3f(r*sin(phi1)*cos(theta1),
-                       r*cos(phi1),
-                       r*sin(phi1)*sin(theta1));
+    double r = SPHERE_RADIUS;
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for (i = 0; i < 2 * n; i++)
+        for (j = 0; j < n; j++)
+        {
+            glBegin(GL_POLYGON);
+            double x1 = r*sin(i * M_PI / n) * sin(j * M_PI / n);
+            double y1 = r*cos(i * M_PI / n) * sin(j * M_PI / n);
+            double z1 = r*cos(j * M_PI / n);
+            glNormal3d(x1/r, y1/r, z1/r);
+            glVertex3d(x1, y1, z1);
 
-            glVertex3f(r*sin(phi1)*cos(theta2),
-                       r*cos(phi1),
-                       r*sin(phi1)*sin(theta2));
+            double x2 = r*sin((i + 1) * M_PI / n) * sin(j * M_PI / n);
+            double y2 = r*cos((i + 1) * M_PI / n) * sin(j * M_PI / n);
+            double z2 = r*cos(j * M_PI / n);
+            glNormal3d(x2/r, y2/r, z2/r);
+            glVertex3d(x2, y2, z2);
 
-            glVertex3f(r*sin(phi2)*cos(theta2),
-                       r*cos(phi2),
-                       r*sin(phi2)*sin(theta2));
+            double x3 = r*sin((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
+            double y3 = r*cos((i + 1) * M_PI / n) * sin((j + 1) * M_PI / n);
+            double z3 = r*cos((j + 1) * M_PI / n);
+            glNormal3d(x3/r, y3/r, z3/r);
+            glVertex3d(x3, y3, z3);
 
-            glVertex3f(r*sin(phi2)*cos(theta1),
-                       r*cos(phi2),
-                       r*sin(phi2)*sin(theta1));
+            double x4 = r*sin(i * M_PI / n) * sin((j + 1) * M_PI / n);
+            double y4 = r*cos(i * M_PI / n) * sin((j + 1) * M_PI / n);
+            double z4 = r*cos((j + 1) * M_PI / n);
+            glNormal3d(x4/r, y4/r, z4/r);
+            glVertex3d(x4, y4, z4);
 
             glEnd();
-
         }
-    }
+
+}
+
+void drawSpinningSphere() {
+    glRotatef(25.0f, 1, 0, 0);
+    glRotatef(15.0f, 0, 1, 0);
+    glRotatef(spin, 0, 0, 1);
+    drawSphere();
 }
 
 //main
@@ -202,6 +251,7 @@ Point getDerivedTangent(Point p0, Point p1, Point p2, Point p3, float t)
 void applyC1Continuity()
 {
     if (nPt < 7) return; //need at least the first 2 segments (skip first one)
+    memset(modList, 0, sizeof(modList));  //clear when reapply
     for (int i = 3; i+3 < nPt; i += 3) {
         ptList[i+1].x = ptList[i].x * 2 - ptList[i-1].x;
         ptList[i+1].y = ptList[i].y * 2 - ptList[i-1].y;
@@ -219,7 +269,7 @@ void drawBezierCurves()
     for (int i = 0; i+3 < nPt; i+=3) {
 
         glBegin(GL_LINE_STRIP);
-            for (int s = 0.0f; s <= NLINESEGMENT; s++) {
+            for (int s = 0; s <= NLINESEGMENT; s++) {
                 float t = (float)s / (float)NLINESEGMENT;
                 Point p = getBezierPoint(t, i);
                 glVertex2f(p.x, p.y);
@@ -241,18 +291,22 @@ void drawAlongCurve(bool enabled, DrawFunction func, int samples, float scale,
         for (int k = 0; k < samples; ++k) {
             float t = (samples == 1) ? 0.0f : (float)k / (samples - 1);
 
+            //rgb based on t
+            float rr = t;
+            float gg = 0.25f * (1.0f - t);
+            float bb = 1.0f - 0.75f * t;
+
+            setMaterial(rr, gg, bb);
+
             Point p = getBezierPoint(t, i);
             Point d = getDerivedTangent(p0, p1, p2, p3, t);
-
-            float len2 = d.x*d.x + d.y*d.y;
-            if (len2 < 1e-6f) continue;
 
             float angle = RAD2DEG(atan2f(d.y, d.x));
 
             glPushMatrix();
                 glTranslatef(p.x, p.y, 0);
                 glRotatef(angle, 0, 0, 1);
-                glScalef(scale, scale, 1);
+                glScalef(scale, scale, scale);
                 func();
             glPopMatrix();
         }
@@ -263,29 +317,24 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if(displayControlLines)
-	{
-	    drawControlLines();
-	}
-
-	if (displayTangentVectors) {
-	    drawAlongCurve(true, drawRightArrow, NOBJECTONCURVE, 0.4f, 0, 1, 0);
-	}
-
-	if (displayObjects) {
-	    drawAlongCurve(true, drawSphere, NOBJECTONCURVE, 5.0f, 0, 1, 0);
-	}
-
-	glPushMatrix();
-
-	if(displayControlPoints)
-	{
+	if(displayControlLines) drawControlLines();
+	if (displayTangentVectors) drawAlongCurve(true, drawRightArrow, NOBJECTONCURVE, 0.4f, 0, 1, 0);
+	if(displayControlPoints) {
+	    glPushMatrix();
 	    drawControlPoints();
+		glPopMatrix();
 	}
-
-	glPopMatrix();
 
 	drawBezierCurves();
+
+	if (displayObjects) {
+    glEnable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
+    drawAlongCurve(true, drawSpinningSphere, NOBJECTONCURVE, 5.0f, 0, 1, 0);
+    glEnable(GL_COLOR_MATERIAL);
+    glDisable(GL_LIGHTING);
+}
+
 
 	glutSwapBuffers ();
 }
@@ -295,7 +344,7 @@ void reshape (int w, int h)
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0,w,h,0);
+	glOrtho(0, w, h, 0, -1000.0, 1000.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -305,6 +354,10 @@ void init(void)
 {
 	glClearColor (1.0,1.0,1.0, 1.0);
 	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+    setupLighting();
 }
 
 void readFile()
@@ -326,6 +379,10 @@ void readFile()
 		file >> ptList[i].y;
 	}
     file.close();// is not necessary because the destructor closes the open file by default
+
+    memset(modList, 0, sizeof(modList));
+    hasBackup = false;
+    nBackup = 0;
 }
 
 void writeFile()
@@ -432,10 +489,16 @@ void mouse(int button, int state, int x, int y)
 		ptList[nPt].y=y;
 		modList[nPt] = false;
 		nPt++;
-		//hasBackup = false;
-		//nBackup = 0;
+		hasBackup = false;
+		nBackup = 0;
 	}
 	glutPostRedisplay();
+}
+
+void idle() {
+    spin += 0.6f;
+    if (spin >= 360.0f) spin -= 360.0f;
+    glutPostRedisplay();
 }
 
 int main(int argc, char **argv)
@@ -453,10 +516,11 @@ int main(int argc, char **argv)
 	cout << "W: Write control points to \"savefile.txt\"" <<endl;
 	glutInit(&argc, argv);
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize (600, 600);
+	glutInitWindowSize (800, 800);
 	glutInitWindowPosition (50, 50);
 	glutCreateWindow ("CS3241 Assignment 4");
 	init ();
+	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutMouseFunc(mouse);
