@@ -21,6 +21,8 @@ typedef struct Point {
 	float x,y;
 } Point;
 
+typedef void (*DrawFunction)(); //function pointer for draw funcs
+
 // Storage of control points
 int nPt = 0;
 Point ptList[MAXPTNO];
@@ -83,6 +85,43 @@ void drawRightArrow()
 	glEnd();
 }
 
+//from assignment 2
+void drawSphere(){
+    //x = (r*sin(Phi)*cos(Theta))
+    //y = (r*sin(Phi)*sin(Theta))
+    //z = (r*cos(Phi))
+    const float r = 1.0f;
+    int n = 20;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < 2*n; j++) {
+            float phi1 = (i*M_PI)/n;
+            float theta1 = j*M_PI/n;
+            float theta2 = (j+1)*M_PI/n;
+            float phi2 = (i+1)*M_PI/n;
+            glBegin(GL_QUADS);
+            glVertex3f(r*sin(phi1)*cos(theta1),
+                       r*cos(phi1),
+                       r*sin(phi1)*sin(theta1));
+
+            glVertex3f(r*sin(phi1)*cos(theta2),
+                       r*cos(phi1),
+                       r*sin(phi1)*sin(theta2));
+
+            glVertex3f(r*sin(phi2)*cos(theta2),
+                       r*cos(phi2),
+                       r*sin(phi2)*sin(theta2));
+
+            glVertex3f(r*sin(phi2)*cos(theta1),
+                       r*cos(phi2),
+                       r*sin(phi2)*sin(theta1));
+
+            glEnd();
+
+        }
+    }
+}
+
+//main
 void drawControlPoints()
 {
     glPointSize(5);
@@ -189,7 +228,8 @@ void drawBezierCurves()
     }
 }
 
-void drawTangentVectors()
+
+void drawTangentVectors(DrawFunction func)
 {
     if (nPt < 4) return;
 
@@ -214,7 +254,7 @@ void drawTangentVectors()
             glTranslatef(p.x, p.y, 0); //move arrow onto curve
             glRotatef(angle, 0, 0, 1); //make face in tangent direction
             glScalef(arrowScale, arrowScale, 1);
-            drawRightArrow();
+            func();
             glPopMatrix();
         }
     }
@@ -231,7 +271,11 @@ void display(void)
 	}
 
 	if (displayTangentVectors) {
-        drawTangentVectors();
+        drawTangentVectors(drawRightArrow);
+	}
+
+	if (displayObjects) {
+	    drawTangentVectors(drawSphere);
 	}
 
 	glPushMatrix();
