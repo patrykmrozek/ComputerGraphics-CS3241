@@ -27,6 +27,35 @@ g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION 
 ```
 
 ---
+## Bézier Curves
+An interactive Bézier curve editor and visualizer with control points, C1 continuity, tangent vectors, and 3D object placement.  
+![Bezier 1](media/bezier1.png)
+![Bezier 2](media/bezier2.png)
+![Bezier 3](media/bezier3.png)
+![Bezier 4](media/bezier4.png)
+
+### Features
+- Add control points interactively  
+- Toggle control lines, tangent vectors, and Bézier curves  
+- Apply and remove **C1 continuity** between connected segments  
+- Render **spinning 3D spheres** aligned with the curve tangents  
+- Save and load control points (`savefile.txt`)  
+- Auto-generate spiral-inward control patterns  
+
+### Controls
+- **Left Click**: Add control point  
+- **C**: Toggle C1 continuity  
+- **T**: Show tangent vectors  
+- **O**: Show 3D objects along curve  
+- **L/P/E**: Toggle lines, points, or clear all  
+- **R/W**: Read/Write from file  
+- **A**: Auto-place control points  
+- **Q**: Exit  
+
+### Building and Running
+```bash
+g++ -o main CS3241Lab4.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
+```
 
 ## Interactive 3D Sphere
 A wireframe sphere renderer with interactive camera controls built using OpenGL and GLUT.
