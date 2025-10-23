@@ -1,4 +1,8 @@
 // CS3241Lab4.cpp : Defines the entry point for the console application.
+// Patryk Mrozek - Assignment 4
+//
+// Press "a" for cool drawing
+//
 //#include <cmath>
 #include "math.h"
 #include <OpenGL/OpenGL.h>
@@ -12,7 +16,10 @@
 #define NLINESEGMENT 32
 #define NOBJECTONCURVE 8
 
-#define SPHERE_RADIUS 7
+int window_height = 600;
+int window_width = 600;
+
+#define SPHERE_RADIUS 1
 
 #define RAD2DEG(x) ((x) * 180.0f / (float)M_PI)
 
@@ -94,25 +101,21 @@ void setupLighting()
     glShadeModel(GL_SMOOTH);
     glEnable(GL_NORMALIZE);
 
-    // Lights, material properties
-    GLfloat ambientProperties[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-    GLfloat diffuseProperties[] = { 0.8f, 0.8f, 0.8f, 1.0f };
-    GLfloat specularProperties[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat lightPosition[] = { -100.0f,100.0f,100.0f,1.0f };
+    GLfloat ambientProperties[]  = {0.3f,0.3f,0.3f,1};
+    GLfloat diffuseProperties[]  = {0.9f,0.9f,0.9f,1};
+    GLfloat specularProperties[] = {1.0f,1.0f,1.0f,1};
 
-    glClearDepth(1.0);
-
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientProperties);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseProperties);
+    glLightfv(GL_LIGHT0, GL_AMBIENT,  ambientProperties);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuseProperties);
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularProperties);
-    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 0.0);
 
-    // Default : lighting
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
 
+    // nice shiny material defaults
+    GLfloat spec[4] = {1,1,1,1};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  spec);
+    glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, 64.0f);
 }
 
 //helper to change colors
@@ -313,6 +316,34 @@ void drawAlongCurve(bool enabled, DrawFunction func, int samples, float scale,
     }
 }
 
+
+void coolDrawing() {
+    float step = 3.0f;
+    resetPoints();
+
+    float l = 0.0f;
+    float r = window_width;
+    float t = 0.0f;
+    float b = window_height;
+
+    while (l <= r && t <= b) {
+        if (nPt + 4 > MAXPTNO) break;
+
+        //draw TL, TR, BR, BL
+        ptList[nPt++] = (Point){l, t};
+        ptList[nPt++] = (Point){r, t};
+        ptList[nPt++] = (Point){r, b};
+        ptList[nPt++] = (Point){l, b};
+
+        l += step;
+        r -= step;
+        t += step;
+        b -= step;
+    }
+
+    glutPostRedisplay();
+}
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -328,12 +359,12 @@ void display(void)
 	drawBezierCurves();
 
 	if (displayObjects) {
-    glEnable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    drawAlongCurve(true, drawSpinningSphere, NOBJECTONCURVE, 5.0f, 0, 1, 0);
-    glEnable(GL_COLOR_MATERIAL);
-    glDisable(GL_LIGHTING);
-}
+        glEnable(GL_LIGHTING);
+        glDisable(GL_COLOR_MATERIAL);
+        drawAlongCurve(true, drawSpinningSphere, NOBJECTONCURVE, 5.0f, 0, 1, 0);
+        glEnable(GL_COLOR_MATERIAL);
+        glDisable(GL_LIGHTING);
+	}
 
 
 	glutSwapBuffers ();
@@ -341,6 +372,8 @@ void display(void)
 
 void reshape (int w, int h)
 {
+    window_height = h;
+    window_width = w;
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
@@ -358,6 +391,10 @@ void init(void)
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
     setupLighting();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    GLfloat pos[4] = { 0.0f, 0.0f, 300.0f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
 }
 
 void readFile()
@@ -457,6 +494,11 @@ void keyboard (unsigned char key, int x, int y)
 			exit(0);
 		break;
 
+		case 'a':  // auto-place corners spiraling inward
+		case 'A':
+            coolDrawing();
+        break;
+
 		default:
 		break;
 	}
@@ -498,6 +540,7 @@ void mouse(int button, int state, int x, int y)
 void idle() {
     spin += 0.6f;
     if (spin >= 360.0f) spin -= 360.0f;
+
     glutPostRedisplay();
 }
 
