@@ -54,7 +54,7 @@ An interactive Bézier curve editor and visualizer with control points, C1 conti
 
 ### Building and Running
 ```bash
-g++ -o main CS3241Lab4.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
+g++ -o main main.cpp -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa && ./main
 ```
 
 ## Interactive 3D Sphere
