@@ -12,7 +12,7 @@
 #define NLINESEGMENT 32
 #define NOBJECTONCURVE 8
 
-#define RAD2DEG(x) ((x) * 180/ (float)M_PI)
+#define RAD2DEG(x) ((x) * 180 / (float)M_PI)
 
 using namespace std;
 
@@ -90,7 +90,7 @@ void drawSphere(){
     //x = (r*sin(Phi)*cos(Theta))
     //y = (r*sin(Phi)*sin(Theta))
     //z = (r*cos(Phi))
-    const float r = 1.0f;
+    const float r = 5.0f;
     int n = 20;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 2*n; j++) {
@@ -228,38 +228,36 @@ void drawBezierCurves()
     }
 }
 
-
-void drawTangentVectors(DrawFunction func)
+void drawAlongCurve(bool enabled, DrawFunction func, int samples, float scale,
+                    float r, float g, float b)
 {
-    if (nPt < 4) return;
+    if (!enabled || nPt < 4 || !func) return;
 
-    const int samples = NOBJECTONCURVE;
-    const float arrowScale = 0.4f;
+    glColor3f(r, g, b);
 
-    for (int i = 0; i+3 < nPt; i += 3) {
-        Point p0 = ptList[i];
-        Point p1 = ptList[i+1];
-        Point p2 = ptList[i+2];
-        Point p3 = ptList[i+3];
+    for (int i = 0; i + 3 < nPt; i += 3) {
+        Point p0 = ptList[i], p1 = ptList[i+1], p2 = ptList[i+2], p3 = ptList[i+3];
 
-        for (int k = 0; k < samples; k++) {
-            float t = (float)k / (samples-1);
+        for (int k = 0; k < samples; ++k) {
+            float t = (samples == 1) ? 0.0f : (float)k / (samples - 1);
 
             Point p = getBezierPoint(t, i);
             Point d = getDerivedTangent(p0, p1, p2, p3, t);
 
+            float len2 = d.x*d.x + d.y*d.y;
+            if (len2 < 1e-6f) continue;
+
             float angle = RAD2DEG(atan2f(d.y, d.x));
 
             glPushMatrix();
-            glTranslatef(p.x, p.y, 0); //move arrow onto curve
-            glRotatef(angle, 0, 0, 1); //make face in tangent direction
-            glScalef(arrowScale, arrowScale, 1);
-            func();
+                glTranslatef(p.x, p.y, 0);
+                glRotatef(angle, 0, 0, 1);
+                glScalef(scale, scale, 1);
+                func();
             glPopMatrix();
         }
     }
 }
-
 
 void display(void)
 {
@@ -271,11 +269,11 @@ void display(void)
 	}
 
 	if (displayTangentVectors) {
-        drawTangentVectors(drawRightArrow);
+	    drawAlongCurve(true, drawRightArrow, NOBJECTONCURVE, 0.4f, 0, 1, 0);
 	}
 
 	if (displayObjects) {
-	    drawTangentVectors(drawSphere);
+	    drawAlongCurve(true, drawSphere, NOBJECTONCURVE, 5.0f, 0, 1, 0);
 	}
 
 	glPushMatrix();
@@ -306,6 +304,7 @@ void reshape (int w, int h)
 void init(void)
 {
 	glClearColor (1.0,1.0,1.0, 1.0);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void readFile()
