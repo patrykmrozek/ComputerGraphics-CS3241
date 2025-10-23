@@ -12,6 +12,8 @@
 #define NLINESEGMENT 32
 #define NOBJECTONCURVE 8
 
+#define RAD2DEG(x) ((x) * 180/M_PI)
+
 using namespace std;
 
 // Global variables that you can use
@@ -24,6 +26,7 @@ int nPt = 0;
 Point ptList[MAXPTNO];
 Point original[MAXPTNO]; //copy of the original list
 bool modList[MAXPTNO] = {false}; //modified points (due to c1)
+int nBackup;
 bool hasBackup = false;
 
 // Display options
@@ -38,6 +41,7 @@ void backupPoints() {
     for (int i = 0; i < nPt; i++) {
         original[i] = ptList[i];
     }
+    nBackup = nPt;
     hasBackup = true;
 }
 
@@ -46,6 +50,7 @@ void restorePoints() {
         printf("no backup!\n");
         return;
     }
+    nPt = nBackup;
     for (int i = 0; i < nPt; i++) {
         ptList[i] = original[i];
     }
@@ -59,13 +64,11 @@ void resetPoints() {
     displayObjects = false;
     C1Continuity = false;
     nPt = 0;
+    hasBackup = false;
+    nBackup = 0;
 	memset(modList, false, sizeof(modList)); //set all to false
-	for (int i = 0; i < MAXPTNO; i++) {
-	    if (ptList[i].x) ptList[i].x = 0;
-		if (ptList[i].y) ptList[i].y = 0;
-		if (original[i].x) original[i].x = 0;
-		if (original[i].y) original[i].y = 0;
-	}
+	memset(ptList, 0, sizeof(ptList));
+    memset(original, 0, sizeof(original));
 }
 
 void drawRightArrow()
@@ -125,8 +128,8 @@ Point getBezierPoint(float t, int b)
 
     //p(t).x
     Point p;
-    p.x = (int)((b0 * ptList[b+0].x) + (b1 * ptList[b+1].x) + (b2 * ptList[b+2].x) + (b3 * ptList[b+3].x));
-    p.y = (int)((b0 * ptList[b+0].y) + (b1 * ptList[b+1].y) + (b2 * ptList[b+2].y) + (b3 * ptList[b+3].y));
+    p.x = (b0 * ptList[b+0].x) + (b1 * ptList[b+1].x) + (b2 * ptList[b+2].x) + (b3 * ptList[b+3].x);
+    p.y = (b0 * ptList[b+0].y) + (b1 * ptList[b+1].y) + (b2 * ptList[b+2].y) + (b3 * ptList[b+3].y);
 
     return p;
 }
@@ -180,22 +183,29 @@ void drawTangentVectors()
 {
     if (nPt < 4) return;
 
-    glColor3f(0.0, 0.0, 1.0);
-    for (int i = 0; i + 3 < nPt; i += 3) {
+    const int samples = NOBJECTONCURVE;
+    const float arrowScale = 0.4f;
+
+    for (int i = 0; i+3 < nPt; i += 3) {
         Point p0 = ptList[i];
         Point p1 = ptList[i+1];
         Point p2 = ptList[i+2];
         Point p3 = ptList[i+3];
 
-        if (C1Continuity && i >= 3) {
-            Point prevp2 = ptList[i-1];
-            p1.x = 2 * p0.x - prevp2.x;
-            p1.y = 2 * p0.x - prevp2.y;
-        }
+        for (int k = 0; k < samples; k++) {
+            float t = (float)k / (samples-1);
 
-        for (int i = 0; i < NOBJECTONCURVE; i++) {
-            float t = (float)i / (NOBJECTONCURVE-1);
+            Point p = getBezierPoint(t, i);
+            Point d = getDerivedTangent(p0, p1, p2, p3, t);
 
+            float angle = RAD2DEG(atan2f(d.y, d.x));
+
+            glPushMatrix();
+            glTranslatef(p.x, p.y, 0); //move arrow onto curve
+            glRotatef(angle, 0, 0, 1); //make face in tangent direction
+            glScalef(arrowScale, arrowScale, 1);
+            drawRightArrow();
+            glPopMatrix();
         }
     }
 }
@@ -210,7 +220,12 @@ void display(void)
 	    drawControlLines();
 	}
 
+	if (displayTangentVectors) {
+        drawTangentVectors();
+	}
+
 	glPushMatrix();
+
 	if(displayControlPoints)
 	{
 	    drawControlPoints();
@@ -290,6 +305,7 @@ void keyboard (unsigned char key, int x, int y)
 		case 'T':
 		case 't':
 			displayTangentVectors = !displayTangentVectors;
+			printf("Tangent Vectors: %d\n", (int)displayTangentVectors);
 		break;
 
 		case 'o':
@@ -363,6 +379,8 @@ void mouse(int button, int state, int x, int y)
 		ptList[nPt].y=y;
 		modList[nPt] = false;
 		nPt++;
+		hasBackup = false;
+		nBackup = 0;
 	}
 	glutPostRedisplay();
 }
