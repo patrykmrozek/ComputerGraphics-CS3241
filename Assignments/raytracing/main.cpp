@@ -5,6 +5,7 @@
 // >make
 // >make run
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include "vector3D.h"
 #include <chrono>
@@ -26,9 +27,12 @@ typedef struct Ray {
   Vector3 start, dir;
 } Ray;
 
+typedef struct Color {
+  double r, g, b;
+} Color;
 
-class RtObject {
-    
+
+class RtObject {    
 public:
     virtual double intersectWithRay(Ray, Vector3& pos, Vector3& normal) = 0; // return a -ve if there is no intersection. Otherwise, return the smallest postive value of t
     
@@ -39,8 +43,7 @@ public:
     double speN = 300;
 
     
-    
-    
+   
 };
 
 class Sphere : public RtObject {
@@ -57,7 +60,6 @@ public:
 RtObject **objList; // The list of all objects in the scene
 
 
-// Global Variables
 // Camera Settings
 Vector3 cameraPos(0,0,-500);
 
@@ -68,17 +70,15 @@ Vector3 leftVector(1, 0, 0);
 float focalLen = 500;
 
 // Light Settings
-
 Vector3 lightPos(900,1000,-1500);
 double ambiantLight[3] = { 0.4,0.4,0.4 };
 double diffusetLight[3] = { 0.7,0.7, 0.7 };
 double specularLight[3] = { 0.5,0.5, 0.5 };
 
 
-double bgColor[3] = { 0.1,0.1,0.4 };
+Color bgColor = { 0.1,0.1,0.4 };
 
 int sceneNo = 0;
-
 
 double Sphere::intersectWithRay(Ray r, Vector3& intersection, Vector3& normal)
 // return a -ve if there is no intersection. Otherwise, return the smallest postive value of t
