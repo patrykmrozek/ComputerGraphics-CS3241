@@ -5,6 +5,7 @@
 // >make
 // >make run
 
+#include <cfloat>
 #include <iostream>
 #include "vector3D.h"
 #include <chrono>
@@ -68,7 +69,7 @@ Color bgColor = { 0.1,0.1,0.4 };
 
 int sceneNo = 0;
 
-Vector3 intersect(Ray r, Sphere s)
+double intersect(Ray r, Sphere s)
 {
   /*
    * Ray from O to C (L = C - O) dir to sphere center
@@ -94,15 +95,12 @@ Vector3 intersect(Ray r, Sphere s)
       double t1, t2;
       t1 = t_ca - t_h;
       t2 = t_ca + t_h;
-      double t = min(t1, t2);
-      Vector3 p = r.origin + (r.dir * t);
-      return p;
+      return min(t1, t2);
     }
-  return NULL; 
-    
+  return DBL_MAX;
 }
 
-void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int level = 0)
+void rayTrace(Ray ray, Color* c, int fromObj = -1 ,int level = 0)
 {
     // Step 4
     
@@ -120,9 +118,9 @@ void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int le
     
     //for (i = 0; i < NUM_OBJECTS; i++)
     {
-        if ((t = objList[i]->intersectWithRay(ray, intersection, normal)) > 0)
+        if ((intersectWithRay(ray, objList[i])))
         {
-            r = g = b = 1.0; 			// Step 2
+            c->r = c->g = c->b = 1.0; 			// Step 2
             
             // Step 3
             goBackGround = 0;
@@ -131,9 +129,9 @@ void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int le
     
     if (goBackGround)
     {
-        r = bgColor.r;
-        g = bgColor.g;
-        b = bgColor.b;
+        c->r = bgColor.r;
+        c->g = bgColor.g;
+        c->b = bgColor.b;
     }
     
 }
@@ -155,7 +153,7 @@ void renderScene()
     cout << "Rendering Scene " << sceneNo << " with resolution " << WINWIDTH << "x" << WINHEIGHT << "........... ";
     long long int time1 = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count(); // marking the starting time
     
-    ray.start = cameraPos;
+    ray.origin = cameraPos;
     
     Vector3 vpCenter = cameraPos + lookAtDir * focalLen;  // viewplane center
     Vector3 startingPt = vpCenter + leftVector * (-WINWIDTH / 2.0) + upVector * (-WINHEIGHT / 2.0);
@@ -167,7 +165,8 @@ void renderScene()
             currPt = startingPt + leftVector*x + upVector*y;
             ray.dir = currPt-cameraPos;
             ray.dir.normalize();
-            rayTrace(ray, r, g, b);
+            Color c = (Color){r, g, b};
+            rayTrace(ray, c);
             drawInPixelBuffer(x, y, r, g, b);
         }
     
