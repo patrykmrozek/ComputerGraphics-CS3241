@@ -23,7 +23,7 @@ using namespace std;
 float* pixelBuffer = new float[WINWIDTH * WINHEIGHT * 3];
 
 typedef struct Ray {
-  Vector3 start, dir;
+  Vector3 origin, dir;
 } Ray;
 
 typedef struct Color {
@@ -39,13 +39,10 @@ public:
     double speN = 300;
 };
 
-class Sphere : public RtObject {    
-    Vector3 m_center;
-    double m_radius;
+class Sphere : public RtObject {
 public:
-    Sphere(Vector3 c, double r) { m_center = c; m_radius = r; };
-    Sphere() {};
-    void set(Vector3 c, double r) { m_center = c; m_radius = r; };
+    Vector3 center;
+    double radius;
 };
 
 RtObject **objList; // The list of all objects in the scene
@@ -71,7 +68,7 @@ Color bgColor = { 0.1,0.1,0.4 };
 
 int sceneNo = 0;
 
-Vector3 intersect(Vector3 origin, Vector3 center, float radius)
+Vector3 intersect(Ray r, Sphere s)
 {
   /*
    * Ray from O to C (L = C - O) dir to sphere center
@@ -83,11 +80,26 @@ Vector3 intersect(Vector3 origin, Vector3 center, float radius)
    * to find half dist between two points along the ray: t_h = sqrt(r^2 - d^2)
    * t1 = t_ca - t_h, t2 = t_ca = t_h
    * t = min(t1, t2)
+   * final intersect point p = O + t*D
    */ 
 
-  Vector3 dir = center - origin;
-
-
+    Vector3 L = s.center - r.origin;
+    double t_ca = dot_prod(L, r.dir);
+    if (t_ca < 0) {return NULL;}; //behind camera
+    //(P_ca = O+t_ca*D)
+    Vector3 P_ca = r.origin + (r.dir * t_ca);
+    double d_sq = L.lengthsqr() - (t_ca*t_ca);
+    if (d_sq <= (s.radius*s.radius)) {
+      double t_h = sqrt((s.radius*s.radius) - d_sq);
+      double t1, t2;
+      t1 = t_ca - t_h;
+      t2 = t_ca + t_h;
+      double t = min(t1, t2);
+      Vector3 p = r.origin + (r.dir * t);
+      return p;
+    }
+  return NULL; 
+    
 }
 
 void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int level = 0)
