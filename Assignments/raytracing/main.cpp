@@ -153,7 +153,6 @@ void renderScene()
 {
     int x, y;
     Ray ray;
-    Color c;
     
     cout << "Rendering Scene " << sceneNo << " with resolution " << WINWIDTH << "x" << WINHEIGHT << "........... ";
     long long int time1 = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count(); // marking the starting time
@@ -167,11 +166,12 @@ void renderScene()
     for(x=0;x<WINWIDTH;x++)
         for (y = 0; y < WINHEIGHT; y++)
         {
-            currPt = startingPt + leftVector*x + upVector*y;
-            ray.dir = currPt-cameraPos;
-            ray.dir.normalize();
-            rayTrace(ray, &c); //pass by pointer for color
-            drawInPixelBuffer(x, y, c.r, c.g, c.b);
+          currPt = startingPt + leftVector*(x+0.5) + upVector*(y+0.5); //pixel centers at +0.5
+          ray.dir = currPt-cameraPos;
+          ray.dir.normalize();
+          Color c;
+          rayTrace(ray, &c); //pass by pointer for color
+          drawInPixelBuffer(x, y, c.r, c.g, c.b);
         }
     
     long long int time2 = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now().time_since_epoch()).count(); // marking the ending time
