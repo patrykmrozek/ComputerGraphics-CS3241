@@ -31,22 +31,25 @@ typedef struct Color {
   double r, g, b;
 } Color;
 
-class RtObject {
-    // Materials Properties
-public:
+struct Sphere {
+    Vector3 center;
+    double radius;
+    Color col;
     double ambientR[3];
     double diffuseR[3];
     double specularR[3];
     double speN = 300;
 };
 
-class Sphere : public RtObject {
-public:
-    Vector3 center;
-    double radius;
-};
 
-RtObject **objList; // The list of all objects in the scene
+static Sphere gObjs[NUM_OBJECTS];
+static int gNumObjs = 0;
+
+
+struct Light {
+  Vector3 pos;
+  Color I; //intensity
+};
 
 
 // Camera Settings
@@ -79,7 +82,7 @@ double intersect(Ray r, Sphere s)
    * pythagoras to get how far from center (between points O, C and now P_ca (P_ca = O+t_ca*D))
    * d^2 = ||L||^2 - t_ca^2, which gives us d, dist from P_ca to C, and if d < r, ray cuts sphere
    * to find half dist between two points along the ray: t_h = sqrt(r^2 - d^2)
-   * t1 = t_ca - t_h, t2 = t_ca = t_h
+   * t1 = t_ca - t_h, t2 = t_ca + t_h
    * t = min(t1, t2)
    * final intersect point p = O + t*D
    */ 
@@ -90,50 +93,52 @@ double intersect(Ray r, Sphere s)
     //(P_ca = O+t_ca*D)
     Vector3 P_ca = r.origin + (r.dir * t_ca);
     double d_sq = L.lengthsqr() - (t_ca*t_ca);
-    if (d_sq <= (s.radius*s.radius)) {
-      double t_h = sqrt((s.radius*s.radius) - d_sq);
-      double t1, t2;
-      t1 = t_ca - t_h;
-      t2 = t_ca + t_h;
-      return min(t1, t2);
-    }
-  return DBL_MAX;
+    if (d_sq > (s.radius*s.radius)) {return DBL_MAX;}
+
+    double t_h = sqrt((s.radius*s.radius) - d_sq);
+    double t1, t2;
+    t1 = t_ca - t_h;
+    t2 = t_ca + t_h;
+    return min(t1, t2);
 }
 
-void rayTrace(Ray ray, Color* c, int fromObj = -1 ,int level = 0)
+void rayTrace(Ray ray, Color* c)
 {
-    // Step 4
-    
-    int goBackGround = 1, i = 0;
-    
-    Vector3 intersection, normal;
-    Vector3 lightV;
-    Vector3 viewV;
-    Vector3 lightReflectionV;
-    Vector3 rayReflectionV;
-    
-    Ray newRay;
-    double mint = DBL_MAX, t;
-    
-    
-    //for (i = 0; i < NUM_OBJECTS; i++)
-    {
-        if ((intersectWithRay(ray, objList[i])))
-        {
-            c->r = c->g = c->b = 1.0; 			// Step 2
-            
-            // Step 3
-            goBackGround = 0;
-        }
+  double best_t = DBL_MAX;
+  int best_idx = -1;
+
+  for (int i = 0; i < gNumObjs; i++) {
+    double t = intersect(ray, gObjs[i]);
+    if (t < best_t) {
+      best_t = t;
+      best_idx = i;
     }
-    
-    if (goBackGround)
-    {
-        c->r = bgColor.r;
-        c->g = bgColor.g;
-        c->b = bgColor.b;
-    }
-    
+  }
+
+  //miss
+  if (best_idx < 0) {
+    c->r = bgColor.r;
+    c->g = bgColor.g;
+    c->b = bgColor.b;
+    return;
+  }
+
+  Sphere S = gObjs[best_idx];
+  Vector3 P = ray.origin + ray.dir * best_t;
+  Vector3 N = P - S.center;
+  N.normalize();
+
+  Vector3 L = lightPos - P;
+  L.normalize();
+  double NdotL = max(0.0, dot_prod(N, L));
+  double r = S.ambientR[0] * ambientL[0] + S.diffuseR[0] * diffuseL[0] * NdotL; 
+  double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL;
+  double b = S.ambientR[2] * ambientL[2] + S.diffuseR[2] * diffuseL[2] * NdotL;
+
+  c->r = min(1.0, max(0.0, r));
+  c->g = min(1.0, max(0.0, g));
+  c->b  = min(1.0, max(0.0, b));
+
 }
 
 
