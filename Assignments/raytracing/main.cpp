@@ -30,11 +30,6 @@ typedef struct Color {
   double r, g, b;
 } Color;
 
-typedef struct Point {
-  float x, y;
-} Point;
-
-
 class RtObject {
     // Materials Properties
 public:
@@ -76,7 +71,7 @@ Color bgColor = { 0.1,0.1,0.4 };
 
 int sceneNo = 0;
 
-Point intersect(Point origin, int dir, Point center, float radius)
+Vector3 intersect(Vector3 origin, Vector3 center, float radius)
 {
   /*
    * Ray from O to C (L = C - O) dir to sphere center
@@ -88,7 +83,11 @@ Point intersect(Point origin, int dir, Point center, float radius)
    * to find half dist between two points along the ray: t_h = sqrt(r^2 - d^2)
    * t1 = t_ca - t_h, t2 = t_ca = t_h
    * t = min(t1, t2)
-   */
+   */ 
+
+  Vector3 dir = center - origin;
+
+
 }
 
 void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int level = 0)
