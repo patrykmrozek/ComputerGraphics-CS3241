@@ -41,19 +41,17 @@ public:
     double diffuseR[3] ;
     double specularR[3] ;
     double speN = 300;
-
-    
-   
+ 
 };
 
 class Sphere : public RtObject {
     
-    Vector3 center_;
-    double r_;
+    Vector3 m_center;
+    double m_radius;
 public:
-    Sphere(Vector3 c, double r) { center_ = c; r_ = r; };
+    Sphere(Vector3 c, double r) { m_center = c; m_radius = r; };
     Sphere() {};
-    void set(Vector3 c, double r) { center_ = c; r_ = r; };
+    void set(Vector3 c, double r) { m_center = c; m_radius = r; };
     double intersectWithRay(Ray, Vector3& pos, Vector3& normal);
 };
 
@@ -71,9 +69,9 @@ float focalLen = 500;
 
 // Light Settings
 Vector3 lightPos(900,1000,-1500);
-double ambiantLight[3] = { 0.4,0.4,0.4 };
-double diffusetLight[3] = { 0.7,0.7, 0.7 };
-double specularLight[3] = { 0.5,0.5, 0.5 };
+double ambientL[3] = { 0.4,0.4,0.4 };
+double diffuseL[3] = { 0.7,0.7, 0.7 };
+double specularL[3] = { 0.5,0.5, 0.5 };
 
 
 Color bgColor = { 0.1,0.1,0.4 };
