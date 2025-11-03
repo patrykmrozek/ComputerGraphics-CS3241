@@ -1,18 +1,16 @@
 // CS3241Lab5.cpp
+// PATRYK MROZEK
+//
+// How to run: (with provided Makefile)
+// >make
+// >make run
 #include <cmath>
 #include <iostream>
 #include "vector3D.h"
 #include <chrono>
 #include <float.h>
-
-/* Include header files depending on platform */
-#ifdef _WIN32
-#include "glut.h"
-#define M_PI 3.14159
-#elif __APPLE__
 #include <OpenGL/gl.h>
 #include <GLUT/GLUT.h>
-#endif
 
 using namespace std;
 
@@ -24,10 +22,10 @@ using namespace std;
 
 float* pixelBuffer = new float[WINWIDTH * WINHEIGHT * 3];
 
-class Ray { // a ray that start with "start" and going in the direction "dir"
-public:
-    Vector3 start, dir;
-};
+typedef struct Ray {
+  Vector3 start, dir;
+} Ray;
+
 
 class RtObject {
     
@@ -39,6 +37,8 @@ public:
     double diffusetReflection[3] ;
     double specularReflection[3] ;
     double speN = 300;
+
+    
     
     
 };
