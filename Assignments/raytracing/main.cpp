@@ -37,9 +37,9 @@ public:
     virtual double intersectWithRay(Ray, Vector3& pos, Vector3& normal) = 0; // return a -ve if there is no intersection. Otherwise, return the smallest postive value of t
     
     // Materials Properties
-    double ambiantReflection[3] ;
-    double diffusetReflection[3] ;
-    double specularReflection[3] ;
+    double ambientR[3] ;
+    double diffuseR[3] ;
+    double specularR[3] ;
     double speN = 300;
 
     
@@ -119,9 +119,9 @@ void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int le
     
     if (goBackGround)
     {
-        r = bgColor[0];
-        g = bgColor[1];
-        b = bgColor[2];
+        r = bgColor.r;
+        g = bgColor.g;
+        b = bgColor.b;
     }
     
 }
@@ -202,48 +202,48 @@ void setScene(int i = 0)
         ((Sphere*)objList[2])->set(Vector3(-130, -80, -80), 100);
         ((Sphere*)objList[3])->set(Vector3(130, 80, 120), 100);
         
-        objList[0]->ambiantReflection[0] = 0.1;
-        objList[0]->ambiantReflection[1] = 0.4;
-        objList[0]->ambiantReflection[2] = 0.4;
-        objList[0]->diffusetReflection[0] = 0;
-        objList[0]->diffusetReflection[1] = 1;
-        objList[0]->diffusetReflection[2] = 1;
-        objList[0]->specularReflection[0] = 0.2;
-        objList[0]->specularReflection[1] = 0.4;
-        objList[0]->specularReflection[2] = 0.4;
+        objList[0]->ambientR[0] = 0.1;
+        objList[0]->ambientR[1] = 0.4;
+        objList[0]->ambientR[2] = 0.4;
+        objList[0]->diffuseR[0] = 0;
+        objList[0]->diffuseR[1] = 1;
+        objList[0]->diffuseR[2] = 1;
+        objList[0]->specularR[0] = 0.2;
+        objList[0]->specularR[1] = 0.4;
+        objList[0]->specularR[2] = 0.4;
         objList[0]->speN = 300;
         
-        objList[1]->ambiantReflection[0] = 0.6;
-        objList[1]->ambiantReflection[1] = 0.6;
-        objList[1]->ambiantReflection[2] = 0.2;
-        objList[1]->diffusetReflection[0] = 1;
-        objList[1]->diffusetReflection[1] = 1;
-        objList[1]->diffusetReflection[2] = 0;
-        objList[1]->specularReflection[0] = 0.0;
-        objList[1]->specularReflection[1] = 0.0;
-        objList[1]->specularReflection[2] = 0.0;
+        objList[1]->ambientR[0] = 0.6;
+        objList[1]->ambientR[1] = 0.6;
+        objList[1]->ambientR[2] = 0.2;
+        objList[1]->diffuseR[0] = 1;
+        objList[1]->diffuseR[1] = 1;
+        objList[1]->diffuseR[2] = 0;
+        objList[1]->specularR[0] = 0.0;
+        objList[1]->specularR[1] = 0.0;
+        objList[1]->specularR[2] = 0.0;
         objList[1]->speN = 50;
         
-        objList[2]->ambiantReflection[0] = 0.1;
-        objList[2]->ambiantReflection[1] = 0.6;
-        objList[2]->ambiantReflection[2] = 0.1;
-        objList[2]->diffusetReflection[0] = 0.1;
-        objList[2]->diffusetReflection[1] = 1;
-        objList[2]->diffusetReflection[2] = 0.1;
-        objList[2]->specularReflection[0] = 0.3;
-        objList[2]->specularReflection[1] = 0.7;
-        objList[2]->specularReflection[2] = 0.3;
+        objList[2]->ambientR[0] = 0.1;
+        objList[2]->ambientR[1] = 0.6;
+        objList[2]->ambientR[2] = 0.1;
+        objList[2]->diffuseR[0] = 0.1;
+        objList[2]->diffuseR[1] = 1;
+        objList[2]->diffuseR[2] = 0.1;
+        objList[2]->specularR[0] = 0.3;
+        objList[2]->specularR[1] = 0.7;
+        objList[2]->specularR[2] = 0.3;
         objList[2]->speN = 650;
         
-        objList[3]->ambiantReflection[0] = 0.3;
-        objList[3]->ambiantReflection[1] = 0.3;
-        objList[3]->ambiantReflection[2] = 0.3;
-        objList[3]->diffusetReflection[0] = 0.7;
-        objList[3]->diffusetReflection[1] = 0.7;
-        objList[3]->diffusetReflection[2] = 0.7;
-        objList[3]->specularReflection[0] = 0.6;
-        objList[3]->specularReflection[1] = 0.6;
-        objList[3]->specularReflection[2] = 0.6;
+        objList[3]->ambientR[0] = 0.3;
+        objList[3]->ambientR[1] = 0.3;
+        objList[3]->ambientR[2] = 0.3;
+        objList[3]->diffuseR[0] = 0.7;
+        objList[3]->diffuseR[1] = 0.7;
+        objList[3]->diffuseR[2] = 0.7;
+        objList[3]->specularR[0] = 0.6;
+        objList[3]->specularR[1] = 0.6;
+        objList[3]->specularR[2] = 0.6;
         objList[3]->speN = 650;
         
     }
