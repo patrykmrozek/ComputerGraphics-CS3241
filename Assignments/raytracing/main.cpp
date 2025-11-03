@@ -78,7 +78,17 @@ int sceneNo = 0;
 
 Point intersect(Point origin, int dir, Point center, float radius)
 {
-  /**/
+  /*
+   * Ray from O to C (L = C - O) dir to sphere center
+   * Project L onto dir D = dist from O to C (t_ca = L*D)
+   * if -t_ca, sphere behind (ignore) else its in front 
+   * t_ca - how far along ray the center would be if ray was pointing directly at center
+   * pythagoras to get how far from center (between points O, C and now P_ca (P_ca = O+t_ca*D))
+   * d^2 = ||L||^2 - t_ca^2, which gives us d, dist from P_ca to C, and if d < r, ray cuts sphere
+   * to find half dist between two points along the ray: t_h = sqrt(r^2 - d^2)
+   * t1 = t_ca - t_h, t2 = t_ca = t_h
+   * t = min(t1, t2)
+   */
 }
 
 void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int level = 0)
