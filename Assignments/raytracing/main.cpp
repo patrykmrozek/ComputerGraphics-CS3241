@@ -4,8 +4,7 @@
 // How to run: (with provided Makefile)
 // >make
 // >make run
-#include <cmath>
-#include <cstdint>
+
 #include <iostream>
 #include "vector3D.h"
 #include <chrono>
@@ -31,28 +30,27 @@ typedef struct Color {
   double r, g, b;
 } Color;
 
+typedef struct Point {
+  float x, y;
+} Point;
 
-class RtObject {    
-public:
-    virtual double intersectWithRay(Ray, Vector3& pos, Vector3& normal) = 0; // return a -ve if there is no intersection. Otherwise, return the smallest postive value of t
-    
+
+class RtObject {
     // Materials Properties
-    double ambientR[3] ;
-    double diffuseR[3] ;
-    double specularR[3] ;
+public:
+    double ambientR[3];
+    double diffuseR[3];
+    double specularR[3];
     double speN = 300;
- 
 };
 
-class Sphere : public RtObject {
-    
+class Sphere : public RtObject {    
     Vector3 m_center;
     double m_radius;
 public:
     Sphere(Vector3 c, double r) { m_center = c; m_radius = r; };
     Sphere() {};
     void set(Vector3 c, double r) { m_center = c; m_radius = r; };
-    double intersectWithRay(Ray, Vector3& pos, Vector3& normal);
 };
 
 RtObject **objList; // The list of all objects in the scene
@@ -78,15 +76,10 @@ Color bgColor = { 0.1,0.1,0.4 };
 
 int sceneNo = 0;
 
-double Sphere::intersectWithRay(Ray r, Vector3& intersection, Vector3& normal)
-// return a -ve if there is no intersection. Otherwise, return the smallest postive value of t
+Point intersect(Point origin, int dir, Point center, float radius)
 {
-    
-    // Step 1
-    
-    return -1;
+  /**/
 }
-
 
 void rayTrace(Ray ray, double& r, double& g, double& b, int fromObj = -1 ,int level = 0)
 {
