@@ -3,6 +3,10 @@
 //
 // How to run: (with provided Makefile)
 // >make
+// >./main
+//
+// OR
+//
 // >make run
 
 #include <cfloat>
@@ -102,6 +106,12 @@ double intersect(Ray r, Sphere s)
     return min(t1, t2);
 }
 
+Vector3 reflect(Vector3 incident, Vector3 normal)
+{
+  //incident ray, unit surface normal
+  return incident - normal * (2.0 * dot_prod(incident, normal));
+}
+
 void rayTrace(Ray ray, Color* c)
 {
   double best_t = DBL_MAX;
@@ -139,6 +149,11 @@ void rayTrace(Ray ray, Color* c)
   c->g = min(1.0, max(0.0, g));
   c->b  = min(1.0, max(0.0, b));
 
+  Color new_c;
+  Vector3 new_dir;
+  Vector3 new_o = ray.origin + (ray.dir * best_t); //point on ray at t
+  Ray new_ray = (Ray){new_o, new_dir};
+  rayTrace(new_ray, &new_c);
 }
 
 
@@ -203,7 +218,7 @@ void reshape (int w, int h)
 
 void setScene(int i = 0)
 {
-    if (i > NUM_SCENE)
+    if (i >= NUM_SCENE)
     {
         cout << "Warning: Invalid Scene Number" << endl;
         return;
