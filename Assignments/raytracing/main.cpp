@@ -93,13 +93,13 @@ double intersect(Ray r, Sphere s)
 
     Vector3 L = s.center - r.origin;
     double t_ca = dot_prod(L, r.dir);
-    if (t_ca < 0) {return NULL;}; //behind camera
     //(P_ca = O+t_ca*D)
     Vector3 P_ca = r.origin + (r.dir * t_ca);
     double d_sq = L.lengthsqr() - (t_ca*t_ca);
-    if (d_sq > (s.radius*s.radius)) {return DBL_MAX;}
+    double r_sq = s.radius * s.radius;
+    if (d_sq > (r_sq)) {return DBL_MAX;}
 
-    double t_h = sqrt((s.radius*s.radius) - d_sq);
+    double t_h = sqrt((r_sq) - d_sq);
     double t1, t2;
     t1 = t_ca - t_h;
     t2 = t_ca + t_h;
@@ -150,9 +150,10 @@ void rayTrace(Ray ray, Color* c)
   c->b  = min(1.0, max(0.0, b));
 
   Color new_c;
-  Vector3 new_dir;
   Vector3 new_o = ray.origin + (ray.dir * best_t); //point on ray at t
-  Ray new_ray = (Ray){new_o, new_dir};
+  Vector3 ref_dir = reflect(ray.dir, N);
+  ref_dir.normalize();
+  Ray new_ray = (Ray){new_o, ref_dir};
   rayTrace(new_ray, &new_c);
 }
 
