@@ -100,10 +100,14 @@ double intersect(Ray r, Sphere s)
     if (d_sq > (r_sq)) {return DBL_MAX;}
 
     double t_h = sqrt((r_sq) - d_sq);
+
+    double t_min = 1e-4; //tiny num
     double t1, t2;
     t1 = t_ca - t_h;
     t2 = t_ca + t_h;
-    return min(t1, t2);
+    if (t1 >= t_min) return t1;
+    if (t2 >= t_min) return t2;
+  return DBL_MAX;
 }
 
 Vector3 reflect(Vector3 incident, Vector3 normal)
