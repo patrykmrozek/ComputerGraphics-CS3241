@@ -112,8 +112,13 @@ Vector3 reflect(Vector3 incident, Vector3 normal)
   return incident - normal * (2.0 * dot_prod(incident, normal));
 }
 
-void rayTrace(Ray ray, Color* c)
+void rayTrace(Ray ray, Color* c, int depth)
 {
+  if (depth <= 0) {
+    *c = bgColor;
+    return;
+  }
+
   double best_t = DBL_MAX;
   int best_idx = -1;
 
@@ -133,7 +138,7 @@ void rayTrace(Ray ray, Color* c)
     return;
   }
 
-  Sphere S = gObjs[best_idx];
+  Sphere &S = gObjs[best_idx];
   Vector3 P = ray.origin + ray.dir * best_t;
   Vector3 N = P - S.center;
   N.normalize();
@@ -145,16 +150,26 @@ void rayTrace(Ray ray, Color* c)
   double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL;
   double b = S.ambientR[2] * ambientL[2] + S.diffuseR[2] * diffuseL[2] * NdotL;
 
+  double kr = 0.4;
+  if (kr > 0.0) {
+
+    Color r_c;
+    Vector3 new_o = ray.origin + (ray.dir * best_t); //point on ray at t
+    Vector3 ref_dir = reflect(ray.dir, N);
+    ref_dir.normalize();
+    Ray ref_ray = (Ray){new_o, ref_dir};
+    rayTrace(ref_ray, &r_c, depth-1);
+
+    r = (1.0 - kr) * r + kr * r_c.r;
+    g = (1.0 - kr) * g + kr * r_c.g;
+    b = (1.0 - kr) * b + kr * r_c.b; 
+  }
+
   c->r = min(1.0, max(0.0, r));
   c->g = min(1.0, max(0.0, g));
   c->b  = min(1.0, max(0.0, b));
 
-  Color new_c;
-  Vector3 new_o = ray.origin + (ray.dir * best_t); //point on ray at t
-  Vector3 ref_dir = reflect(ray.dir, N);
-  ref_dir.normalize();
-  Ray new_ray = (Ray){new_o, ref_dir};
-  rayTrace(new_ray, &new_c);
+
 }
 
 
@@ -186,7 +201,7 @@ void renderScene()
           ray.dir = currPt-cameraPos;
           ray.dir.normalize();
           Color c;
-          rayTrace(ray, &c); //pass by pointer for color
+          rayTrace(ray, &c, MAX_RT_LEVEL); //pass by pointer for color
           drawInPixelBuffer(x, y, c.r, c.g, c.b);
         }
     
