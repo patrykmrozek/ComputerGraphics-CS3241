@@ -66,11 +66,11 @@ Vector3 leftVector(1, 0, 0);
 float focalLen = 500;
 
 // Light Settings
+
 Vector3 lightPos(900,1000,-1500);
 double ambientL[3] = { 0.4,0.4,0.4 };
 double diffuseL[3] = { 0.7,0.7, 0.7 };
 double specularL[3] = { 0.5,0.5, 0.5 };
-
 
 Color bgColor = { 0.1,0.1,0.4 };
 
@@ -150,11 +150,22 @@ void rayTrace(Ray ray, Color* c, int depth)
   Vector3 L = lightPos - P;
   L.normalize();
   double NdotL = max(0.0, dot_prod(N, L));
-  double r = S.ambientR[0] * ambientL[0] + S.diffuseR[0] * diffuseL[0] * NdotL; 
-  double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL;
-  double b = S.ambientR[2] * ambientL[2] + S.diffuseR[2] * diffuseL[2] * NdotL;
 
-  double kr = 0.4;
+  //specular
+  Vector3 V = cameraPos - P;
+  V.normalize();
+  Vector3 R = reflect(L * -1.0, N); //reflect incoming light ray about N
+  
+  double RdotV = max(0.0, dot_prod(R, V));
+  double spec = pow(RdotV, max(1.0, S.speN)); //shininess exponent
+
+  double r = S.ambientR[0] * ambientL[0] + S.diffuseR[0] * diffuseL[0] * NdotL + S.specularR[0] * specularL[0] * spec; 
+  double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL + S.specularR[1] * specularL[1] * spec;
+  double b = S.ambientR[2] * ambientL[2] + S.diffuseR[2] * diffuseL[2] * NdotL + S.specularR[2] * specularL[2] * spec;
+
+
+
+  double kr = 0.3;
   if (kr > 0.0) {
 
     Color r_c;
@@ -244,17 +255,13 @@ void setScene(int i = 0)
         return;
     }
     
-    if (i == 0)
-    {
-      gObjs[0].ambientR[0]=0.1; gObjs[0].ambientR[1]=0.4; gObjs[0].ambientR[2]=0.4;
-      gObjs[0].diffuseR[0]=0.0; gObjs[0].diffuseR[1]=1.0; gObjs[0].diffuseR[2]=1.0;
-      gObjs[0].specularR[0]=0.2; gObjs[0].specularR[1]=0.4; gObjs[0].specularR[2]=0.4; gObjs[0].speN=300;
-    }
+      gObjs[i].ambientR[0]=0.1; gObjs[i].ambientR[1]=0.4; gObjs[i].ambientR[2]=0.4;
+      gObjs[i].diffuseR[0]=0.0; gObjs[i].diffuseR[1]=1.0; gObjs[i].diffuseR[2]=1.0;
+      gObjs[i].specularR[0]=0.2; gObjs[i].specularR[1]=0.4; gObjs[i].specularR[2]=0.4; gObjs[i].speN=300;
     
     if (i == 1)
     {
-        
-        // Step 5
+
         
     }
 }
@@ -269,6 +276,7 @@ void keyboard (unsigned char key, int x, int y)
         case 'S':
             sceneNo = (sceneNo + 1 ) % NUM_SCENE;
             setScene(sceneNo);
+            cout << "Scene No: " << sceneNo << "\n";
             renderScene();
             glutPostRedisplay();
             break;
@@ -298,7 +306,6 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);
     
     glutKeyboardFunc(keyboard);
-   
     setScene(0);
     
     setScene(sceneNo);
