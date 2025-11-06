@@ -10,6 +10,7 @@
 // >make run
 
 #include <cfloat>
+#include <ios>
 #include <iostream>
 #include "vector3D.h"
 #include <chrono>
@@ -274,21 +275,37 @@ void addSphere(Vector3 c, double r,
 
 void setScene(int i = 0)
 {
-    if (i >= NUM_SCENE)
-    {
-        cout << "Warning: Invalid Scene Number" << endl;
-        return;
-    }
-    
-      gObjs[i].ambientR[0]=0.1; gObjs[i].ambientR[1]=0.4; gObjs[i].ambientR[2]=0.4;
-      gObjs[i].diffuseR[0]=0.0; gObjs[i].diffuseR[1]=1.0; gObjs[i].diffuseR[2]=1.0;
-      gObjs[i].specularR[0]=0.2; gObjs[i].specularR[1]=0.4; gObjs[i].specularR[2]=0.4; gObjs[i].speN=300;
-    
-    if (i == 1)
-    {
+  if (i >= NUM_SCENE) i = 0;
+  sceneNo = i;
 
-        
+  gNumObjs = 0; //clear curr scene
+
+  bgColor = (Color){0.1, 0.1, 0.4};
+  cameraPos = Vector3(0, 0, -500);
+  lookAtDir = Vector3(0, 0, 1);
+  upVector = Vector3(0, 1, 0);
+  leftVector = Vector3(1, 0, 0);
+  focalLen = 500;
+
+  lightPos = Vector3(900, 1000, -1500);
+  ambientL[0]=ambientL[1]=ambientL[2] = 0.4;
+  diffuseL[0]=diffuseL[1]=diffuseL[2] = 0.7;
+  specularL[0]=specularL[1]=specularL[2] = 0.5;
+
+  switch(i) {
+    case 0: {
+        addSphere(Vector3(-130,  80, 120), 100,   0.1,0.4,0.4,   0.0,1.0,1.0,   0.2,0.4,0.4, 300);
+        addSphere(Vector3( 130, -80, -80), 100,   0.6,0.6,0.2,   1.0,1.0,0.0,   0.0,0.0,0.0,  50);
+        addSphere(Vector3(-130, -80, -80), 100,   0.1,0.6,0.1,   0.1,1.0,0.1,   0.3,0.7,0.3, 650);
+        addSphere(Vector3( 130,  80, 120), 100,   0.3,0.3,0.3,   0.7,0.7,0.7,   0.6,0.6,0.6, 650);
+        break;
     }
+    case 1: {
+      focalLen = 100;
+      addSphere(Vector3(100, 100, 100), 200, 0.2, 0.2, 0.2, 0.9, 0.1, 1.0, 0.8, 0.7, 0.6, 500);
+      break;
+    }
+  }
 }
 
 void keyboard (unsigned char key, int x, int y)
@@ -315,9 +332,7 @@ void keyboard (unsigned char key, int x, int y)
 }
 
 int main(int argc, char **argv)
-{
-    
-    
+{    
     cout<<"<<CS3241 Lab 5>>\n\n"<<endl;
     cout << "S to go to next scene" << endl;
     cout << "Q to quit"<<endl;
@@ -337,12 +352,7 @@ int main(int argc, char **argv)
     
     gNumObjs = 4;
 
-    gObjs[0].center = Vector3(-130,  80, 120); gObjs[0].radius = 100;
-    gObjs[1].center = Vector3( 130, -80, -80); gObjs[1].radius = 100;
-    gObjs[2].center = Vector3(-130, -80, -80); gObjs[2].radius = 100;
-    gObjs[3].center = Vector3( 130,  80, 120); gObjs[3].radius = 100;
-
-    // Copy the material arrays you already set in setScene(0)
+   // Copy the material arrays you already set in setScene(0)
     gObjs[0].ambientR[0]=0.1; gObjs[0].ambientR[1]=0.4; gObjs[0].ambientR[2]=0.4;
     gObjs[0].diffuseR[0]=0.0; gObjs[0].diffuseR[1]=1.0; gObjs[0].diffuseR[2]=1.0;
     gObjs[0].specularR[0]=0.2; gObjs[0].specularR[1]=0.4; gObjs[0].specularR[2]=0.4; gObjs[0].speN=300;
