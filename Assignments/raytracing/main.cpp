@@ -10,7 +10,6 @@
 // >make run
 
 #include <cfloat>
-#include <ios>
 #include <iostream>
 #include "vector3D.h"
 #include <chrono>
@@ -44,6 +43,7 @@ struct Sphere {
     double diffuseR[3];
     double specularR[3];
     double speN = 300;
+    double reflectivity; //0-1
 };
 
 
@@ -166,7 +166,7 @@ void rayTrace(Ray ray, Color* c, int depth)
 
 
 
-  double kr = 0.3;
+  double kr = S.reflectivity;
   if (kr > 0.0) {
 
     Color r_c;
@@ -259,7 +259,7 @@ void addSphere(Vector3 c, double r,
                double a0, double a1, double a2,
                double d0, double d1, double d2,
                double s0, double s1, double s2,
-               double shininess)
+               double shininess, double reflectivity)
 {
   if (gNumObjs >= NUM_OBJECTS) {
     return;
@@ -271,6 +271,7 @@ void addSphere(Vector3 c, double r,
   set3(S.diffuseR, d0, d1, d2);
   set3(S.specularR, s0, s1, s2);
   S.speN = shininess;
+  S.reflectivity = reflectivity;
 }
 
 void setScene(int i = 0)
@@ -294,15 +295,36 @@ void setScene(int i = 0)
 
   switch(i) {
     case 0: {
-        addSphere(Vector3(-130,  80, 120), 100,   0.1,0.4,0.4,   0.0,1.0,1.0,   0.2,0.4,0.4, 300);
-        addSphere(Vector3( 130, -80, -80), 100,   0.6,0.6,0.2,   1.0,1.0,0.0,   0.0,0.0,0.0,  50);
-        addSphere(Vector3(-130, -80, -80), 100,   0.1,0.6,0.1,   0.1,1.0,0.1,   0.3,0.7,0.3, 650);
-        addSphere(Vector3( 130,  80, 120), 100,   0.3,0.3,0.3,   0.7,0.7,0.7,   0.6,0.6,0.6, 650);
+        addSphere(Vector3(-130,  80, 120), 100,   0.1,0.4,0.4,   0.0,1.0,1.0,   0.2,0.4,0.4, 300, 0.4);
+        addSphere(Vector3( 130, -80, -80), 100,   0.6,0.6,0.2,   1.0,1.0,0.0,   0.0,0.0,0.0,  50, 0.0);
+        addSphere(Vector3(-130, -80, -80), 100,   0.1,0.6,0.1,   0.1,1.0,0.1,   0.3,0.7,0.3, 650, 0.2);
+        addSphere(Vector3( 130,  80, 120), 100,   0.3,0.3,0.3,   0.7,0.7,0.7,   0.6,0.6,0.6, 650, 0.1);
         break;
     }
     case 1: {
-      focalLen = 100;
-      addSphere(Vector3(100, 100, 100), 200, 0.2, 0.2, 0.2, 0.9, 0.1, 1.0, 0.8, 0.7, 0.6, 500);
+      bgColor = (Color){0.9, 0.9, 0.9};
+      ambientL[0]=ambientL[1]=ambientL[2] = 0.1;
+      diffuseL[0]=diffuseL[1]=diffuseL[2] = 0.8;
+      specularL[0]=specularL[1]=specularL[2] = 0.9;
+
+      addSphere(Vector3(150, 200, 100),
+                200,
+                0.8, 0.3, 0.2,
+                0.5, 0.1, 0.4,
+                0.8, 0.7, 0.6,
+                600, 0.5);
+      addSphere(Vector3(-150, 50, 150),
+                100,
+                0.1, 0.8, 0.3,
+                0.3, 0.8, 0.2,
+                0.5, 0.9, 0.5,
+                400, 0.3);
+      addSphere(Vector3(-100, -400, 0),
+                350,
+                0.1, 0.1, 0.9,
+                0.3, 0.2, 0.8,
+                0.4, 0.4, 0.9,
+                500, 0.2);
       break;
     }
   }
