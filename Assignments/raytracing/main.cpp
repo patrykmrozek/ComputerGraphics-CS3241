@@ -247,6 +247,31 @@ void reshape (int w, int h)
 }
 
 
+void set3(double a[3], double x, double y, double z)
+{
+  a[0] = x;
+  a[1] = y;
+  a[2] = z;
+}
+
+void addSphere(Vector3 c, double r,
+               double a0, double a1, double a2,
+               double d0, double d1, double d2,
+               double s0, double s1, double s2,
+               double shininess)
+{
+  if (gNumObjs >= NUM_OBJECTS) {
+    return;
+  }
+  Sphere &S = gObjs[gNumObjs++];
+  S.center = c;
+  S.radius = r;
+  set3(S.ambientR, a0, a1, a2);
+  set3(S.diffuseR, d0, d1, d2);
+  set3(S.specularR, s0, s1, s2);
+  S.speN = shininess;
+}
+
 void setScene(int i = 0)
 {
     if (i >= NUM_SCENE)
@@ -310,8 +335,6 @@ int main(int argc, char **argv)
     
     setScene(sceneNo);
     
-
-
     gNumObjs = 4;
 
     gObjs[0].center = Vector3(-130,  80, 120); gObjs[0].radius = 100;
