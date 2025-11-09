@@ -111,6 +111,7 @@ double intersect(Ray r, Sphere s)
   return DBL_MAX;
 }
 
+
 Vector3 reflect(Vector3 incident, Vector3 normal)
 {
   //incident ray, unit surface normal
@@ -152,6 +153,10 @@ void rayTrace(Ray ray, Color* c, int depth)
   L.normalize();
   double NdotL = max(0.0, dot_prod(N, L));
 
+  Vector3 away_from_light = -lightPos;
+  
+
+
   //specular
   Vector3 V = cameraPos - P;
   V.normalize();
@@ -159,6 +164,8 @@ void rayTrace(Ray ray, Color* c, int depth)
   
   double RdotV = max(0.0, dot_prod(R, V));
   double spec = pow(RdotV, max(1.0, S.speN)); //shininess exponent
+ 
+  Ray surface_to_light = (Ray){P, L};
 
   double r = S.ambientR[0] * ambientL[0] + S.diffuseR[0] * diffuseL[0] * NdotL + S.specularR[0] * specularL[0] * spec; 
   double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL + S.specularR[1] * specularL[1] * spec;
@@ -302,11 +309,11 @@ void setScene(int i = 0)
         break;
     }
     case 1: {
-      bgColor = (Color){0.6, 0.1, 0.1};
+      bgColor = (Color){0.3, 0.1, 0.3};
       ambientL[0]=ambientL[1]=ambientL[2] = 0.1;
       diffuseL[0]=diffuseL[1]=diffuseL[2] = 0.8;
       specularL[0]=specularL[1]=specularL[2] = 0.9;
-      lightPos = Vector3(-900, 1000, -700);
+      lightPos = Vector3(-500, 700, -700);
 
       addSphere(Vector3(150, 200, 100),
                 200,
