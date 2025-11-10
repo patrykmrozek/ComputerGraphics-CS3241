@@ -118,6 +118,26 @@ Vector3 reflect(Vector3 incident, Vector3 normal)
   return incident - normal * (2.0 * dot_prod(incident, normal));
 }
 
+
+bool isShadow(Vector3 &P, Vector3 &N, Vector3 &Lpos, int ignore_i) 
+{
+  const double eps = 1e-4;
+  Vector3 to_L = Lpos - P;
+  double max_T = to_L.length();
+  Vector3 dir = to_L / max_T; //normalize
+  Ray shadow_ray = {
+    .origin=(P + dir * eps),
+    .dir=dir
+  }; //offset
+
+  for (int i = 0; i < gNumObjs; i++) {
+    if (i==ignore_i) continue;
+    double t = intersect(shadow_ray, gObjs[i]);
+    if (t < max_T - eps) return true; //if hit or close enough (eps)
+  }
+  return false;
+}
+
 void rayTrace(Ray ray, Color* c, int depth)
 {
   if (depth <= 0) {
@@ -149,23 +169,23 @@ void rayTrace(Ray ray, Color* c, int depth)
   Vector3 N = P - S.center;
   N.normalize();
 
-  Vector3 L = lightPos - P;
-  L.normalize();
-  double NdotL = max(0.0, dot_prod(N, L));
-
-  Vector3 away_from_light = -lightPos;
-  
-
-
-  //specular
+  double NdotL = 0.0;
   Vector3 V = cameraPos - P;
   V.normalize();
-  Vector3 R = reflect(L * -1.0, N); //reflect incoming light ray about N
   
-  double RdotV = max(0.0, dot_prod(R, V));
-  double spec = pow(RdotV, max(1.0, S.speN)); //shininess exponent
- 
-  Ray surface_to_light = (Ray){P, L};
+  double RdotV = 0.0;
+  double spec = 0.0; 
+
+  bool shaded = isShadow(P, N, lightPos, best_idx);
+  if (!shaded) {
+    Vector3 L = lightPos - P;
+    L.normalize();
+    NdotL = max(0.0, dot_prod(N, L));
+
+    Vector3 R = reflect(-L, N);
+    RdotV = max(0.0, dot_prod(R, V));
+    spec = pow(RdotV, max(1.0, S.speN)); //shininess exponent
+  } 
 
   double r = S.ambientR[0] * ambientL[0] + S.diffuseR[0] * diffuseL[0] * NdotL + S.specularR[0] * specularL[0] * spec; 
   double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL + S.specularR[1] * specularL[1] * spec;
@@ -173,9 +193,7 @@ void rayTrace(Ray ray, Color* c, int depth)
 
 
 
-  double kr = S.reflectivity;
-  if (kr > 0.0) {
-
+  if (S.reflectivity > 0.0 && depth > 0) {
     Color r_c;
     Vector3 new_o = ray.origin + (ray.dir * best_t); //point on ray at t
     Vector3 ref_dir = reflect(ray.dir, N);
@@ -183,6 +201,7 @@ void rayTrace(Ray ray, Color* c, int depth)
     Ray ref_ray = (Ray){new_o, ref_dir};
     rayTrace(ref_ray, &r_c, depth-1);
 
+    double kr = S.reflectivity;
     r = (1.0 - kr) * r + kr * r_c.r;
     g = (1.0 - kr) * g + kr * r_c.g;
     b = (1.0 - kr) * b + kr * r_c.b; 
