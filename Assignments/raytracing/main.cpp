@@ -1,13 +1,8 @@
 // CS3241Lab5.cpp
 // PATRYK MROZEK
 //
-// How to run: (with provided Makefile)
-// >make
-// >./main
-//
-// OR
-//
-// >make run
+// How to run: 
+// g++ main.cpp vector3D.cpp -std=c++17 -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa -o main && ./main
 
 #include <cfloat>
 #include <iostream>

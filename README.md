@@ -20,7 +20,7 @@ make run
 ```
 Manually:
 ```
-g++ main.cpp -std=c++17 -framework GLUT -framework OpenGL -framework Cocoa -o main && ./main
+g++ main.cpp vector3D.cpp -std=c++17 -framework GLUT -framework OpenGL -DGL_SILENCE_DEPRECATION -framework Cocoa -o main && ./main
 ```
 
 ## Solar System Simulation
