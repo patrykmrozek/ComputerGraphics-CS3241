@@ -191,8 +191,6 @@ void rayTrace(Ray ray, Color* c, int depth)
   double g = S.ambientR[1] * ambientL[1] + S.diffuseR[1] * diffuseL[1] * NdotL + S.specularR[1] * specularL[1] * spec;
   double b = S.ambientR[2] * ambientL[2] + S.diffuseR[2] * diffuseL[2] * NdotL + S.specularR[2] * specularL[2] * spec;
 
-
-
   if (S.reflectivity > 0.0 && depth > 0) {
     Color r_c;
     Vector3 new_o = ray.origin + (ray.dir * best_t); //point on ray at t
@@ -210,8 +208,6 @@ void rayTrace(Ray ray, Color* c, int depth)
   c->r = min(1.0, max(0.0, r));
   c->g = min(1.0, max(0.0, g));
   c->b  = min(1.0, max(0.0, b));
-
-
 }
 
 
@@ -321,18 +317,41 @@ void setScene(int i = 0)
 
   switch(i) {
     case 0: {
-        addSphere(Vector3(-130,  80, 120), 100,   0.1,0.4,0.4,   0.0,1.0,1.0,   0.2,0.4,0.4, 300, 0.4);
-        addSphere(Vector3( 130, -80, -80), 100,   0.6,0.6,0.2,   1.0,1.0,0.0,   0.0,0.0,0.0,  50, 0.0);
-        addSphere(Vector3(-130, -80, -80), 100,   0.1,0.6,0.1,   0.1,1.0,0.1,   0.3,0.7,0.3, 650, 0.2);
-        addSphere(Vector3( 130,  80, 120), 100,   0.3,0.3,0.3,   0.7,0.7,0.7,   0.6,0.6,0.6, 650, 0.5);
+        addSphere(
+        Vector3(-130,  80, 120),
+        100,
+        0.1,0.4,0.4,
+        0.0,1.0,1.0,
+        0.2,0.4,0.4,
+        300, 0.4);
+        addSphere(
+        Vector3( 130, -80, -80), 100,
+        0.6,0.6,0.2,
+        1.0,1.0,0.0,
+        0.0,0.0,0.0,
+        50, 0.0);
+        addSphere(
+        Vector3(-130, -80, -80),
+        100,
+        0.1,0.6,0.1,
+        0.1,1.0,0.1,
+        0.3,0.7,0.3,
+        650, 0.2);
+        addSphere(
+        Vector3( 130,  80, 120),
+        100,
+        0.3,0.3,0.3,
+        0.7,0.7,0.7,
+        0.6,0.6,0.6,
+        650, 0.5);
         break;
     }
     case 1: {
-      bgColor = (Color){0.3, 0.1, 0.3};
+      bgColor = (Color){0.3, 0.1, 0.2};
       ambientL[0]=ambientL[1]=ambientL[2] = 0.1;
       diffuseL[0]=diffuseL[1]=diffuseL[2] = 0.8;
       specularL[0]=specularL[1]=specularL[2] = 0.9;
-      lightPos = Vector3(-500, 700, -700);
+      lightPos = Vector3(-400, 900, -500);
 
       addSphere(Vector3(150, 200, 100),
                 200,
@@ -340,7 +359,7 @@ void setScene(int i = 0)
                 0.7, 0.0, 0.4,
                 0.8, 0.7, 0.6,
                 600, 0.4);
-      addSphere(Vector3(-150, 50, 150),
+      addSphere(Vector3(-150, 60, -50),
                 100,
                 0.1, 0.8, 0.3,
                 0.3, 0.8, 0.2,
@@ -348,16 +367,16 @@ void setScene(int i = 0)
                 400, 0.1);
       addSphere(Vector3(-100, -400, 0),
                 350,
-                0.1, 0.1, 0.9,
-                0.3, 0.2, 0.8,
-                0.4, 0.4, 0.9,
-                500, 0.2);
-      addSphere(Vector3(100, -50, 50),
+                0.9, 0.8, 0.9,
+                0.8, 0.7, 0.9,
+                0.8, 0.7, 0.8,
+                100, 0.2);
+      addSphere(Vector3(100, -20, -70),
                 50,
                 0.9, 0.9, 0.1,
-                0.7, 0.7, 0.3,
-                0.9, 0.8, 0.4,
-                300, 0.2);
+                0.8, 0.8, 0.3,
+                0.9, 0.8, 0.1,
+                300, 0.2); 
       break;
     }
   }
