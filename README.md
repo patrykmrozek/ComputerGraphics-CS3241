@@ -1,6 +1,28 @@
 # Computer Graphics - CS3241
 A collection of OpenGL projects and exercises for Computer Graphics class.
 
+## Ray Tracing Renderer
+A minimal recursive ray tracer with shadows, refections, Phong Illumination, and multi-scene rendering.
+
+![Raytrace1](media/raytrace1.png)
+![Raytrace2](media/raytrace2.png)
+
+### Features
+- Ray-sphere intersection
+- Phong shading
+- Hard shadows via shadow rays
+- Recursive reflection
+
+### Building and Running
+Using Makefile:
+```
+make run
+```
+Manually:
+```
+g++ main.cpp -std=c++17 -framework GLUT -framework OpenGL -framework Cocoa -o main && ./main
+```
+
 ## Solar System Simulation
 An interactive 3D solar system with planetary motion, camera tracking, and multiple viewing modes built using OpenGL and GLUT.
 [![Solar System Demo](https://img.youtube.com/vi/z4otZGtN46M/0.jpg)](https://youtu.be/z4otZGtN46M)
